@@ -170,6 +170,7 @@ function initHeroScene(host) {
   const scene = new THREE.Scene();
   const env = buildEnvironment(renderer);
   scene.environment = env;
+  registerScene(renderer, scene);
 
   const camera = new THREE.PerspectiveCamera(
     36, host.clientWidth / host.clientHeight, 0.1, 100
@@ -319,6 +320,8 @@ function initHeroScene(host) {
   const clock = new THREE.Clock();
 
   function animate() {
+    // Sahne serbest bırakılmışsa döngüyü yeniden kurma
+    if (!renderer.domElement.isConnected) return;
     requestAnimationFrame(animate);
     if (!visible) return;
 
@@ -369,6 +372,7 @@ function initStoneViewer(host) {
 
   const scene = new THREE.Scene();
   scene.environment = buildEnvironment(renderer);
+  registerScene(renderer, scene);
 
   const camera = new THREE.PerspectiveCamera(
     34, host.clientWidth / host.clientHeight, 0.1, 100
@@ -457,6 +461,7 @@ function initStoneViewer(host) {
   const clock = new THREE.Clock();
 
   function animate() {
+    if (!renderer.domElement.isConnected) return;
     requestAnimationFrame(animate);
     if (!visible) return;
 
@@ -481,21 +486,56 @@ function initStoneViewer(host) {
 /* =========================================================================
    Başlat
    ========================================================================= */
-function boot() {
+/* Kurulan sahneler. Tek dosyalık sürümde sayfa değişince serbest bırakılır;
+   aksi hâlde tarayıcının WebGL bağlam sınırı (~16) hızla dolar. */
+const liveScenes = [];
+
+function registerScene(renderer, scene) {
+  liveScenes.push({ renderer, scene });
+}
+
+function disposeScenes() {
+  while (liveScenes.length) {
+    const { renderer, scene } = liveScenes.pop();
+    try {
+      scene.traverse((o) => {
+        if (o.geometry) o.geometry.dispose();
+        const mats = Array.isArray(o.material) ? o.material : (o.material ? [o.material] : []);
+        mats.forEach((m) => {
+          Object.keys(m).forEach((k) => {
+            const v = m[k];
+            if (v && v.isTexture) v.dispose();
+          });
+          m.dispose();
+        });
+      });
+      if (scene.environment) scene.environment.dispose();
+      renderer.dispose();
+      renderer.forceContextLoss();
+      if (renderer.domElement && renderer.domElement.parentNode) {
+        renderer.domElement.parentNode.removeChild(renderer.domElement);
+      }
+    } catch (e) { /* temizlik hatası sayfayı düşürmesin */ }
+  }
+}
+
+function mountScenes() {
   if (!hasWebGL()) return;
 
-  const hero = document.querySelector('[data-scene="hero"]');
+  const hero = document.querySelector('[data-scene="hero"]:not(.is-ready)');
   if (hero) {
     try { initHeroScene(hero); } catch (e) { /* fallback görsel devrede kalır */ }
   }
 
-  document.querySelectorAll('[data-scene="stone"]').forEach((el) => {
+  document.querySelectorAll('[data-scene="stone"]:not(.is-ready)').forEach((el) => {
     try { initStoneViewer(el); } catch (e) { /* sessizce atla */ }
   });
 }
 
+window.WinnerScene = { mount: mountScenes, dispose: disposeScenes };
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
+  document.addEventListener('DOMContentLoaded', mountScenes);
 } else {
-  boot();
+  mountScenes();
 }

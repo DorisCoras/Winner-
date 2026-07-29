@@ -21,9 +21,15 @@
   var smoothY = scrollY;
   var viewportH = window.innerHeight;
   var docH = 0;
+  // Global görevler bir kez kaydedilir; sayfaya bağlı olanlar her
+  // içerik değişiminde sıfırlanır (tek dosyalık sürümde sayfa geçişleri için).
   var frameTasks = [];
+  var pageTasks = [];
+  var pageResize = [];
 
   function onFrame(fn) { frameTasks.push(fn); }
+  function onPageFrame(fn) { pageTasks.push(fn); }
+  function onPageResize(fn) { pageResize.push(fn); }
 
   function measure() {
     viewportH = window.innerHeight;
@@ -38,8 +44,12 @@
     smoothY = reduced ? scrollY : lerp(smoothY, scrollY, 0.12);
     if (Math.abs(smoothY - scrollY) < 0.08) smoothY = scrollY;
 
-    for (var i = 0; i < frameTasks.length; i++) {
+    var i;
+    for (i = 0; i < frameTasks.length; i++) {
       try { frameTasks[i](scrollY, smoothY); } catch (e) { /* tek görev tüm döngüyü düşürmesin */ }
+    }
+    for (i = 0; i < pageTasks.length; i++) {
+      try { pageTasks[i](scrollY, smoothY); } catch (e) { /* aynı şekilde */ }
     }
     requestAnimationFrame(tick);
   }
@@ -221,10 +231,10 @@
       });
     }
     remeasure();
-    window.addEventListener('resize', remeasure);
+    onPageResize(remeasure);
     window.addEventListener('load', remeasure);
 
-    onFrame(function (y, sy) {
+    onPageFrame(function (y, sy) {
       for (var i = 0; i < cache.length; i++) {
         var c = cache[i];
         // Öğe görünür alandayken -1..1 arası konum
@@ -256,10 +266,10 @@
         section.style.height = (window.innerHeight + distance()) + 'px';
       }
       sizeSection();
-      window.addEventListener('resize', sizeSection);
+      onPageResize(sizeSection);
       window.addEventListener('load', sizeSection);
 
-      onFrame(function (y, sy) {
+      onPageFrame(function (y, sy) {
         var rect = section.getBoundingClientRect();
         var start = sy + rect.top;
         var d = distance();
@@ -339,7 +349,7 @@
       });
     });
 
-    window.addEventListener('resize', function () {
+    onPageResize(function () {
       $$('.acc-item.is-open .acc-panel').forEach(function (p) {
         p.style.height = p.scrollHeight + 'px';
       });
@@ -556,13 +566,11 @@
   /* ------------------------------------------------------------------
      Başlat
      ------------------------------------------------------------------ */
-  function boot() {
-    document.documentElement.classList.add('js');
-    measure();
+  /* Sayfa içeriğine bağlı kurulum. İçerik değişirse yeniden çağrılabilir. */
+  function mount() {
+    pageTasks.length = 0;
+    pageResize.length = 0;
 
-    initLoader();
-    initNav();
-    initProgress();
     initReveal();
     initParallax();
     initHScroll();
@@ -570,18 +578,43 @@
     initAccordion();
     initMarquee();
     initGlassPointer();
-    initCursor();
-    initToTop();
-    initAnchors();
     initForm();
     initFilter();
 
-    window.addEventListener('resize', measure);
+    measure();
+  }
+
+  /* Yalnızca bir kez kurulan, sayfadan bağımsız parçalar. */
+  function bootOnce() {
+    document.documentElement.classList.add('js');
+    measure();
+
+    initLoader();
+    initNav();
+    initProgress();
+    initCursor();
+    initToTop();
+    initAnchors();
+
+    window.addEventListener('resize', function () {
+      measure();
+      for (var i = 0; i < pageResize.length; i++) {
+        try { pageResize[i](); } catch (e) { /* yoksay */ }
+      }
+    });
     window.addEventListener('load', measure);
     setInterval(measure, 1200); // görsel yüklenmeleri sayfa yüksekliğini değiştirir
 
     requestAnimationFrame(tick);
   }
+
+  function boot() {
+    bootOnce();
+    mount();
+  }
+
+  // Tek dosyalık sürümdeki yönlendirici, sayfa değişiminde mount()'u çağırır.
+  window.WinnerSite = { mount: mount };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
