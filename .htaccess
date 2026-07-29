@@ -1,0 +1,92 @@
+# =============================================================================
+# Winner Marble — Apache yapılandırması
+#
+# Bu dosya Apache tabanlı hosting'ler (cPanel, Plesk, çoğu paylaşımlı hosting)
+# içindir. Sunucunuz Nginx kullanıyorsa bu dosya yok sayılır; sitenin çalışması
+# için zorunlu değildir, yalnızca hız ve güvenlik iyileştirmesi sağlar.
+# =============================================================================
+
+# --- Varsayılan sayfa ---
+DirectoryIndex index.html index.php
+
+# --- Hata sayfası ---
+ErrorDocument 404 /404.html
+
+# --- Karakter kodlaması ---
+AddDefaultCharset UTF-8
+
+# -----------------------------------------------------------------------------
+# Sıkıştırma
+# -----------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/css application/javascript
+  AddOutputFilterByType BROTLI_COMPRESS application/json image/svg+xml
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# Önbellek — sürümlenmemiş varlıklar için makul süreler
+# -----------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault                          "access plus 1 month"
+
+  ExpiresByType text/html                 "access plus 0 seconds"
+  ExpiresByType text/xml                  "access plus 0 seconds"
+  ExpiresByType application/xml           "access plus 0 seconds"
+
+  ExpiresByType text/css                  "access plus 1 month"
+  ExpiresByType application/javascript    "access plus 1 month"
+
+  ExpiresByType image/jpeg                "access plus 1 year"
+  ExpiresByType image/png                 "access plus 1 year"
+  ExpiresByType image/webp                "access plus 1 year"
+  ExpiresByType image/svg+xml             "access plus 1 year"
+  ExpiresByType font/woff2                "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(woff2|jpg|jpeg|png|svg|webp)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+
+  # Güvenlik başlıkları
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# MIME türleri (bazı sunucularda woff2 tanımsız gelir)
+# -----------------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/svg+xml .svg
+  AddType application/javascript .js
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# .html uzantısız adresler (isteğe bağlı)
+# ornek.com/hakkimizda -> hakkimizda.html olarak çalışır.
+# -----------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Zaten var olan dosya/dizin ise dokunma
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !\.[a-zA-Z0-9]{2,5}$
+  RewriteRule ^(.+)$ $1.html [L]
+</IfModule>
+
+# --- Dizin listelemeyi kapat ---
+Options -Indexes

@@ -1,0 +1,286 @@
+/* ==========================================================================
+   Winner Marble — Sıvı Cam (Liquid Glass) katmanı
+   Bulanıklık + doygunluk, spektral kenar, imleçle hareket eden parlama
+   ve destekleyen tarayıcılarda SVG kırılma (refraction) efekti.
+   ========================================================================== */
+
+.glass {
+  --glass-tint: rgba(255, 255, 255, 0.045);
+  --glass-blur: 20px;
+  --glass-sat: 1.7;
+  --glass-edge: rgba(255, 255, 255, 0.24);
+  --glass-radius: var(--radius-lg);
+
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--glass-radius);
+  background: var(--glass-tint);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(1.05);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(1.05);
+  box-shadow:
+    inset 0 1px 0 var(--glass-edge),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+    inset 1px 0 0 rgba(255, 255, 255, 0.09),
+    inset -1px 0 0 rgba(255, 255, 255, 0.09),
+    0 24px 60px -28px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+
+/* Üstten aşağı inen ince ışık geçişi — camın kalınlık hissi */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.03) 22%,
+      rgba(255, 255, 255, 0) 55%,
+      rgba(255, 255, 255, 0.045) 100%);
+}
+
+/* İmleci takip eden yumuşak parlama (JS --mx/--my yazar) */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-out);
+  background:
+    radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%),
+      rgba(255, 255, 255, 0.16),
+      rgba(255, 255, 255, 0.05) 38%,
+      transparent 68%);
+}
+.glass:hover::after,
+.glass:focus-within::after { opacity: 1; }
+
+/* ---- Varyantlar ---- */
+.glass--soft   { --glass-tint: rgba(255,255,255,0.028); --glass-blur: 14px; }
+.glass--strong { --glass-tint: rgba(255,255,255,0.075); --glass-blur: 30px; --glass-sat: 2; }
+.glass--dark   { --glass-tint: rgba(8,8,10,0.55); --glass-edge: rgba(255,255,255,0.14); }
+.glass--gold {
+  --glass-tint: rgba(201, 164, 76, 0.10);
+  --glass-edge: rgba(227, 200, 132, 0.42);
+}
+.glass--flat { --glass-radius: var(--radius); }
+.glass--pill { --glass-radius: 999px; }
+
+/* ---- Spektral kenar: cam kırılmasının renk saçılımı ---- */
+.glass--spectral {
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--glass-tint), var(--glass-tint)),
+    linear-gradient(135deg,
+      rgba(255, 245, 225, 0.55) 0%,
+      rgba(201, 164, 76, 0.30) 18%,
+      rgba(255, 255, 255, 0.10) 38%,
+      rgba(150, 200, 255, 0.22) 58%,
+      rgba(255, 255, 255, 0.08) 78%,
+      rgba(255, 228, 180, 0.45) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+/* ---- Gerçek kırılma: destekleyen tarayıcılarda arka planı büker ---- */
+@supports (backdrop-filter: url(#winner-refraction)) {
+  .glass--refract {
+    backdrop-filter: url(#winner-refraction) blur(var(--glass-blur)) saturate(var(--glass-sat));
+    -webkit-backdrop-filter: url(#winner-refraction) blur(var(--glass-blur)) saturate(var(--glass-sat));
+  }
+}
+
+/* Tarayıcı backdrop-filter desteklemiyorsa okunabilirlik korunur */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: rgba(16, 16, 19, 0.92); }
+  .glass--gold { background: rgba(44, 36, 18, 0.92); }
+}
+
+/* ==========================================================================
+   Cam yüzeyli düğmeler
+   ========================================================================== */
+.btn {
+  --btn-pad-y: 0.95em;
+  --btn-pad-x: 1.9em;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: var(--step--1);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform 0.45s var(--ease-out),
+    color 0.35s var(--ease-out),
+    box-shadow 0.45s var(--ease-out);
+}
+
+.btn__label { position: relative; z-index: 2; }
+
+.btn__arrow {
+  position: relative;
+  z-index: 2;
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  transition: transform 0.45s var(--ease-out);
+}
+.btn:hover .btn__arrow { transform: translateX(0.28em); }
+
+/* Alttan yükselen dolgu */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform: translateY(101%);
+  transition: transform 0.55s var(--ease-out);
+}
+.btn:hover::before { transform: translateY(0); }
+
+/* --- birincil: altın --- */
+.btn--gold {
+  background: linear-gradient(120deg, var(--gold-deep), var(--gold) 45%, var(--gold-light) 62%, var(--gold) 82%);
+  color: var(--obsidian);
+  box-shadow: 0 14px 34px -16px var(--gold-glow);
+}
+.btn--gold::before { background: var(--ivory); }
+.btn--gold:hover { box-shadow: 0 20px 44px -16px var(--gold-glow); }
+
+/* --- cam --- */
+.btn--glass {
+  background: rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  color: var(--ivory);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 16px 40px -22px rgba(0, 0, 0, 0.9);
+}
+.btn--glass::before { background: rgba(255, 255, 255, 0.14); }
+
+/* --- çerçeveli --- */
+.btn--ghost {
+  color: var(--ivory);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.btn--ghost::before { background: var(--ivory); }
+.btn--ghost:hover { color: var(--obsidian); }
+
+.btn--sm { --btn-pad-y: 0.72em; --btn-pad-x: 1.4em; font-size: var(--step--2); }
+.btn--block { display: flex; width: 100%; }
+
+/* Mıknatıs etkisi JS ile --tx/--ty yazar */
+.btn--magnetic { transform: translate(var(--tx, 0px), var(--ty, 0px)); }
+
+/* ==========================================================================
+   Cam etiket / rozet
+   ========================================================================== */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.42em 0.95em;
+  border-radius: 999px;
+  font-size: var(--step--2);
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stone-200);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.13);
+}
+.chip--gold {
+  color: var(--gold-light);
+  background: rgba(201, 164, 76, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 76, 0.35);
+}
+.chip__dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ==========================================================================
+   Sıvı damla dekoru — yavaşça biçim değiştiren cam kütle
+   ========================================================================== */
+.liquid-blob {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 42% 58% 63% 37% / 47% 42% 58% 53%;
+  background:
+    radial-gradient(circle at 32% 28%,
+      rgba(201, 164, 76, 0.28),
+      rgba(201, 164, 76, 0.06) 46%,
+      transparent 70%);
+  filter: blur(38px);
+  animation: blob-morph 22s var(--ease-io) infinite;
+  will-change: border-radius, transform;
+}
+.liquid-blob--b {
+  background:
+    radial-gradient(circle at 60% 40%,
+      rgba(160, 200, 255, 0.18),
+      rgba(120, 160, 255, 0.05) 48%,
+      transparent 72%);
+  animation-duration: 29s;
+  animation-direction: reverse;
+}
+
+@keyframes blob-morph {
+  0%,100% {
+    border-radius: 42% 58% 63% 37% / 47% 42% 58% 53%;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    border-radius: 64% 36% 38% 62% / 58% 63% 37% 42%;
+    transform: translate3d(3%, -4%, 0) rotate(52deg) scale(1.08);
+  }
+  66% {
+    border-radius: 36% 64% 55% 45% / 38% 52% 48% 62%;
+    transform: translate3d(-3%, 3%, 0) rotate(-38deg) scale(0.95);
+  }
+}
+
+/* ==========================================================================
+   Cam yüzeyde kayan parlama (shimmer) — plaka kartlarında kullanılır
+   ========================================================================== */
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -140%;
+  width: 60%;
+  height: 220%;
+  transform: rotate(18deg);
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.14) 42%,
+    rgba(255, 255, 255, 0.30) 50%,
+    rgba(255, 255, 255, 0.14) 58%,
+    transparent);
+  transition: left 0.95s var(--ease-out);
+}
+.shimmer:hover::after { left: 150%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-blob { animation: none; }
+  .shimmer::after { display: none; }
+}
