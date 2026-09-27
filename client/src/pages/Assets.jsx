@@ -289,6 +289,7 @@ export default function Assets() {
           <DataTable
             columns={columns}
             rows={rows}
+            compact
             empty={
               filtered ? (
                 <EmptyState title="Filtreyle eşleşen demirbaş bulunamadı" />

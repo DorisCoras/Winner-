@@ -137,8 +137,21 @@ export default function organizationRoutes(db) {
     );
   });
 
+  function validateDepartment(b) {
+    if (!db.prepare('SELECT 1 FROM companies WHERE id = ?').get(b.company_id)) {
+      throw new HttpError(400, 'Şirket bulunamadı.', { fields: { company_id: 'Şirket bulunamadı.' } });
+    }
+    if (b.manager_id) {
+      const m = db.prepare('SELECT status FROM employees WHERE id = ?').get(b.manager_id);
+      if (!m || m.status !== 'aktif') {
+        throw new HttpError(400, 'Departman yöneticisi aktif bir personel olmalı.', { fields: { manager_id: 'Aktif bir personel seçiniz.' } });
+      }
+    }
+  }
+
   r.post('/departments', hr, (req, res) => {
     const b = parseBody(departmentSchema, req.body);
+    validateDepartment(b);
     const id = insertRow(db, 'departments', b);
     audit(db, req, 'olustur', 'departman', id, b.name);
     res.status(201).json(db.prepare('SELECT * FROM departments WHERE id = ?').get(id));
@@ -147,6 +160,7 @@ export default function organizationRoutes(db) {
   r.put('/departments/:id', hr, (req, res) => {
     const id = idParam(req);
     const b = parseBody(departmentSchema, req.body);
+    validateDepartment(b);
     if (!updateRow(db, 'departments', id, b)) throw notFound('Departman');
     audit(db, req, 'guncelle', 'departman', id, b.name);
     res.json(db.prepare('SELECT * FROM departments WHERE id = ?').get(id));

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Megaphone, Pencil, Pin, Plus, Trash2 } from 'lucide-react';
 import { api, useApi } from '../api.js';
 import { useAuth } from '../auth.jsx';
@@ -19,6 +19,20 @@ import {
 } from '../components/ui.jsx';
 import { formatDateTime, matches } from '../format.js';
 import './Announcements.css';
+
+/** Form hatası: uzun formlarda kaydet düğmesi alttayken de görünmesi için görünür alana kaydırılır. */
+function FormError({ message }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (message) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [message]);
+  if (!message) return null;
+  return (
+    <div className="mb-2" ref={ref}>
+      <Alert tone="error">{message}</Alert>
+    </div>
+  );
+}
 
 export default function Announcements() {
   const { isHR } = useAuth();
@@ -108,9 +122,9 @@ export default function Announcements() {
                   </h2>
                   <div className="ann-meta">
                     {a.company_id ? <Badge>{a.company_name}</Badge> : <Badge tone="teal">Tüm Grup</Badge>}
-                    <span>{a.author_name ?? 'İnsan Kaynakları'}</span>
-                    <span aria-hidden="true">·</span>
-                    <time dateTime={a.created_at}>{formatDateTime(a.created_at)}</time>
+                    <span className="nowrap">
+                      {a.author_name ?? 'İnsan Kaynakları'} · <time dateTime={a.created_at}>{formatDateTime(a.created_at)}</time>
+                    </span>
                   </div>
                 </div>
                 {isHR && (
@@ -197,11 +211,7 @@ function AnnouncementModal({ announcement, onClose, onSaved }) {
       }
     >
       <form id="announcement-form" onSubmit={save} noValidate>
-        {f.formError && (
-          <div className="mb-2">
-            <Alert tone="error">{f.formError}</Alert>
-          </div>
-        )}
+        <FormError message={f.formError} />
         <div className="form-grid">
           <Field label="Başlık" required error={f.errors.title} htmlFor="f-title" className="full">
             <input className="input" {...f.bind('title')} maxLength={200} />

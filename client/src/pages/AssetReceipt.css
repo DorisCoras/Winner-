@@ -90,8 +90,9 @@
   margin-top: 14px;
 }
 .receipt-sign-line > span:first-child {
-  width: 64px;
+  width: 76px;
   flex: none;
+  white-space: nowrap;
   color: #444;
 }
 .receipt-sign-line > span:last-child {

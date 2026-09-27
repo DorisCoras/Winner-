@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Briefcase, ChevronLeft, ChevronRight, Pencil, Plus, RotateCcw, Star, Trash2, UserCheck, UserPlus, Users, X } from 'lucide-react';
 import { api, useApi } from '../api.js';
@@ -29,6 +29,20 @@ const JOB_STATUS_ORDER = ['acik', 'beklemede', 'kapali'];
 function JobStatusBadge({ status }) {
   const { jobStatuses } = useLookups();
   return <Badge tone={JOB_STATUS_TONE[status] ?? ''}>{jobStatuses?.[status] ?? status}</Badge>;
+}
+
+/** Form hatası: uzun formlarda kaydet düğmesi alttayken de görünmesi için görünür alana kaydırılır. */
+function FormError({ message }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (message) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [message]);
+  if (!message) return null;
+  return (
+    <div className="mb-2" ref={ref}>
+      <Alert tone="error">{message}</Alert>
+    </div>
+  );
 }
 
 function Stars({ value }) {
@@ -636,11 +650,7 @@ function JobFormModal({ job, onClose, onSaved }) {
       }
     >
       <form id="job-form" onSubmit={save} noValidate>
-        {f.formError && (
-          <div className="mb-2">
-            <Alert tone="error">{f.formError}</Alert>
-          </div>
-        )}
+        <FormError message={f.formError} />
         <div className="form-grid">
           <Field label="Pozisyon başlığı" required error={f.errors.title} htmlFor="f-title" className="full">
             <input className="input" {...f.bind('title')} maxLength={150} placeholder="ör. Kıdemli Muhasebe Uzmanı" />
@@ -791,11 +801,7 @@ function CandidateFormModal({ candidate, defaultPostingId, jobs, onClose, onSave
             )}
           </div>
         )}
-        {f.formError && (
-          <div className="mb-2">
-            <Alert tone="error">{f.formError}</Alert>
-          </div>
-        )}
+        <FormError message={f.formError} />
         <div className="form-grid">
           <Field label="İlan" required error={f.errors.posting_id} htmlFor="f-posting_id" className="full">
             <select className="select" {...f.bind('posting_id')}>

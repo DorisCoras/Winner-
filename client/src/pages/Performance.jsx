@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Award, CheckCircle2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { api, useApi } from '../api.js';
 import { useAuth } from '../auth.jsx';
@@ -31,6 +31,20 @@ const STATUS = { taslak: ['amber', 'Taslak'], tamamlandi: ['green', 'Tamamlandı
 function ReviewStatusBadge({ status }) {
   const [tone, label] = STATUS[status] ?? ['', status];
   return <Badge tone={tone}>{label}</Badge>;
+}
+
+/** Form hatası: uzun formlarda kaydet düğmesi alttayken de görünmesi için görünür alana kaydırılır. */
+function FormError({ message }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (message) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [message]);
+  if (!message) return null;
+  return (
+    <div className="mb-2" ref={ref}>
+      <Alert tone="error">{message}</Alert>
+    </div>
+  );
 }
 
 const formatScore = (v) => (v == null ? '—' : formatNumber(v, 2));
@@ -434,6 +448,7 @@ function ReviewFormModal({ review, existing, periods, onClose, onSaved }) {
   const [ask, guardedClose] = useGuardedConfirm(onClose);
   const isEdit = !!review?.id;
   const wasCompleted = review?.status === 'tamamlandi';
+  const [showMissing, setShowMissing] = useState(false);
   const team = useApi(!isHR && !isEdit ? '/employees' : null);
 
   const f = useForm({
@@ -470,6 +485,7 @@ function ReviewFormModal({ review, existing, periods, onClose, onSaved }) {
     if (status === 'tamamlandi') {
       const missing = reviewCriteria.filter((c) => !scores[c.code]);
       if (missing.length) {
+        setShowMissing(true);
         f.setFormError(`Değerlendirmeyi tamamlamak için tüm kriterleri puanlayın. Eksik: ${missing.map((c) => c.label).join(', ')}.`);
         return;
       }
@@ -514,11 +530,7 @@ function ReviewFormModal({ review, existing, periods, onClose, onSaved }) {
       }
     >
       <form id="review-form" onSubmit={(e) => e.preventDefault()} noValidate>
-        {f.formError && (
-          <div className="mb-2">
-            <Alert tone="error">{f.formError}</Alert>
-          </div>
-        )}
+        <FormError message={f.formError} />
         <div className="form-grid">
           <Field label="Personel" required error={f.errors.employee_id} htmlFor="f-employee_id">
             {isEdit ? (
@@ -592,7 +604,9 @@ function ReviewFormModal({ review, existing, periods, onClose, onSaved }) {
                   </button>
                 ))}
               </div>
-              <span className={`perf-score-label ${value ? '' : 'muted'}`}>{value ? SCORE_LABELS[value] : 'Puanlanmadı'}</span>
+              <span className={`perf-score-label ${value ? '' : showMissing ? 'text-danger' : 'muted'}`}>
+                {value ? SCORE_LABELS[value] : 'Puanlanmadı'}
+              </span>
             </div>
           );
         })}

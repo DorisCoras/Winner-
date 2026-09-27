@@ -45,7 +45,7 @@ const leaveTypeSchema = z.object({
   deducts_balance: zBool,
   paid: zBool,
   max_days: z
-    .union([z.coerce.number().positive(), z.literal(''), z.null()])
+    .union([z.coerce.number().positive('Azami gün 0\'dan büyük olmalı.'), z.literal(''), z.null()])
     .optional()
     .transform((v) => (v === '' || v == null ? null : v)),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Renk #RRGGBB biçiminde olmalı.').optional().default('#2563eb'),

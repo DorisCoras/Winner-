@@ -55,6 +55,7 @@
   vertical-align: top;
 }
 .print-page table.cert-info th {
+  width: 1%;
   font-weight: 600;
   white-space: nowrap;
   color: #374151;

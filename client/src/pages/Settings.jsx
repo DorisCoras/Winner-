@@ -474,6 +474,19 @@ function HolidaysTab() {
         Ramazan ve Kurban Bayramı tarihleri hicri takvime göre her yıl değişir; yılbaşında Diyanet İşleri Başkanlığı takvimiyle
         doğrulayın. Arife günleri 13:00’ten itibaren yarım gün tatildir. Resmi tatiller izin gün hesabında sayılmaz.
       </Alert>
+      <div className="toolbar" style={{ marginBottom: 0 }}>
+        <select className="select" style={{ flex: '0 0 auto', minWidth: 110 }} value={year} onChange={(e) => setYear(Number(e.target.value))} aria-label="Yıl">
+          {years.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+        <span className="spacer" />
+        <button className="btn btn-primary" onClick={() => setEditing({ date: year === currentYear ? todayStr() : `${year}-01-01` })}>
+          <Plus size={16} /> Tatil ekle
+        </button>
+      </div>
       <Card
         title={`${year} resmi tatilleri`}
         hint={
@@ -482,23 +495,6 @@ function HolidaysTab() {
             : 'Bu yıl için kayıt yok'
         }
         flush
-        actions={
-          <>
-            <select className="select" style={{ width: 'auto', height: 30 }} value={year} onChange={(e) => setYear(Number(e.target.value))} aria-label="Yıl">
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={() => setEditing({ date: year === currentYear ? todayStr() : `${year}-01-01` })}
-            >
-              <Plus size={15} /> Tatil ekle
-            </button>
-          </>
-        }
       >
         <DataTable
           columns={columns}
@@ -1486,7 +1482,7 @@ function AuditTab() {
       header: 'Ayrıntı',
       render: (r) =>
         r.detailText ? (
-          <span className="truncate small" style={{ display: 'block', maxWidth: 360 }} title={r.detailText}>
+          <span className="truncate small" style={{ display: 'block', maxWidth: 300 }} title={r.detailText}>
             {r.detailText}
           </span>
         ) : (

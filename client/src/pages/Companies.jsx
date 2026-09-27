@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Building2, Layers, Mail, MapPin, Pencil, Phone, Plus, Trash2, Users } from 'lucide-react';
+import { Building2, Layers, Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { api, useApi } from '../api.js';
 import { useAuth } from '../auth.jsx';
 import { useLookups } from '../lookups.jsx';
@@ -145,9 +145,9 @@ function CompanyList({ state, onChanged, onShowDepartments }) {
                   items={[
                     ['Vergi dairesi / no', c.tax_office || c.tax_no ? `${c.tax_office ?? '—'} / ${c.tax_no ?? '—'}` : null],
                     ['SGK işyeri no', c.sgk_no ? <span className="mono">{c.sgk_no}</span> : null],
-                    ['Telefon', c.phone ? <IconText icon={Phone}><a href={`tel:${c.phone.replace(/\s+/g, '')}`}>{c.phone}</a></IconText> : null],
-                    ['E-posta', c.email ? <IconText icon={Mail}><a href={`mailto:${c.email}`}>{c.email}</a></IconText> : null],
-                    ['Adres', c.address ? <IconText icon={MapPin}>{c.address}</IconText> : null],
+                    ['Telefon', c.phone ? <a href={`tel:${c.phone.replace(/\s+/g, '')}`}>{c.phone}</a> : null],
+                    ['E-posta', c.email ? <a href={`mailto:${c.email}`}>{c.email}</a> : null],
+                    ['Adres', c.address],
                   ]}
                 />
               </div>
@@ -166,15 +166,6 @@ function CompanyList({ state, onChanged, onShowDepartments }) {
       )}
       {editing && <CompanyModal key={editing.id ?? 'yeni'} company={editing} onClose={() => setEditing(null)} onSaved={saved} />}
     </>
-  );
-}
-
-function IconText({ icon: Icon, children }) {
-  return (
-    <span className="row" style={{ gap: 6, alignItems: 'flex-start' }}>
-      <Icon size={14} className="muted" style={{ flex: 'none', marginTop: 3 }} />
-      <span style={{ minWidth: 0 }}>{children}</span>
-    </span>
   );
 }
 
