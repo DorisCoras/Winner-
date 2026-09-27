@@ -29,11 +29,11 @@ const candidateSchema = z.object({
   source: zOptText(60),
   stage: z.enum(Object.keys(CANDIDATE_STAGES)).optional().default('basvuru'),
   rating: z
-    .union([z.coerce.number().int().min(1).max(5), z.literal(''), z.null()])
+    .union([z.literal(''), z.null(), z.coerce.number().int().min(1).max(5)])
     .optional()
     .transform((v) => (v === '' || v == null ? null : v)),
   expected_salary: z
-    .union([z.coerce.number().min(0), z.literal(''), z.null()])
+    .union([z.literal(''), z.null(), z.coerce.number().min(0)])
     .optional()
     .transform((v) => (v === '' || v == null ? null : v)),
   notes: zOptText(5000),

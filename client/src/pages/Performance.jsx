@@ -65,11 +65,7 @@ function OverallCell({ value }) {
 
 function AckCell({ review }) {
   if (review.status !== 'tamamlandi') return <span className="muted">—</span>;
-  return review.acknowledged_at ? (
-    <Badge tone="green">Okundu {formatDate(review.acknowledged_at)}</Badge>
-  ) : (
-    <Badge>Bekliyor</Badge>
-  );
+  return review.acknowledged_at ? <Badge tone="green">Okundu {formatDate(review.acknowledged_at)}</Badge> : <Badge>Bekliyor</Badge>;
 }
 
 function ScoreScale({ value }) {
@@ -124,10 +120,7 @@ export default function Performance() {
   const closeDetail = useCallback(() => setSelectedId(null), []);
   const closeForm = useCallback(() => setForm(null), []);
 
-  const periods = useMemo(
-    () => [...new Set((data ?? []).map((r) => r.period))].sort((a, b) => b.localeCompare(a, 'tr')),
-    [data],
-  );
+  const periods = useMemo(() => [...new Set((data ?? []).map((r) => r.period))].sort((a, b) => b.localeCompare(a, 'tr')), [data]);
   const rows = useMemo(
     () =>
       (data ?? []).filter(
@@ -372,11 +365,7 @@ function ReviewDetailModal({ review: r, isOwn, canDelete, acking, onClose, onEdi
       }
     >
       <div className="perf-head">
-        <PersonCell
-          name={r.employee_name}
-          sub={[r.position, r.department_name, r.company_name].filter(Boolean).join(' · ')}
-          size="lg"
-        />
+        <PersonCell name={r.employee_name} sub={[r.position, r.department_name, r.company_name].filter(Boolean).join(' · ')} size="lg" />
         <div className="perf-overall">
           <div className="perf-overall-value">
             {formatScore(r.overall)} <small>/ 5</small>

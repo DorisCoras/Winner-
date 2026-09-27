@@ -217,7 +217,13 @@ export default function Recruitment() {
         <StatCard icon={Briefcase} label="Açık ilan" value={formatNumber(stats.openJobs)} sub={`Toplam ${jobs.length} ilan`} />
         <StatCard icon={Users} tone="teal" label="Açık pozisyon" value={formatNumber(stats.openPositions)} sub="Açık ilanlardaki kadro" />
         <StatCard icon={UserPlus} tone="amber" label="Aktif aday" value={formatNumber(stats.activeCandidates)} sub="Süreci devam eden" />
-        <StatCard icon={UserCheck} tone="green" label="Bu yıl işe alınan" value={formatNumber(stats.hiredThisYear)} sub={`${stats.year} yılında`} />
+        <StatCard
+          icon={UserCheck}
+          tone="green"
+          label="Bu yıl işe alınan"
+          value={formatNumber(stats.hiredThisYear)}
+          sub={`${stats.year} yılında`}
+        />
       </div>
 
       <Tabs
@@ -398,12 +404,7 @@ function JobsTab({ jobs, onOpen, onNew, onEdit, onDelete }) {
         </select>
       </div>
       <div className="card">
-        <DataTable
-          columns={columns}
-          rows={rows}
-          onRowClick={onOpen}
-          empty={<EmptyState title="Filtreyle eşleşen ilan bulunamadı" />}
-        />
+        <DataTable columns={columns} rows={rows} onRowClick={onOpen} empty={<EmptyState title="Filtreyle eşleşen ilan bulunamadı" />} />
       </div>
       <p className="small muted mt-1">Bir ilana tıklayarak adaylarını Aday Takibi sekmesinde görüntüleyebilirsiniz.</p>
     </>
@@ -493,14 +494,7 @@ function CandidatesTab({ jobs, candidates, stageKeys, flow, postingFilter, onPos
               <div className="kanban-cards">
                 {list.length === 0 && <div className="rec-col-empty">Aday yok</div>}
                 {list.map((c) => (
-                  <CandidateCard
-                    key={c.id}
-                    candidate={c}
-                    flow={flow}
-                    showPosting={!postingFilter}
-                    onOpen={onOpen}
-                    onMove={onMove}
-                  />
+                  <CandidateCard key={c.id} candidate={c} flow={flow} showPosting={!postingFilter} onOpen={onOpen} onMove={onMove} />
                 ))}
               </div>
             </section>
@@ -527,7 +521,11 @@ function CandidateCard({ candidate: c, flow, showPosting, onOpen, onMove }) {
       <button type="button" className="rec-card-name" onClick={act(() => onOpen(c))}>
         {name}
       </button>
-      {showPosting && <div className="small muted truncate" title={c.posting_title}>{c.posting_title}</div>}
+      {showPosting && (
+        <div className="small muted truncate" title={c.posting_title}>
+          {c.posting_title}
+        </div>
+      )}
       <div className="rec-card-meta">
         {c.source ? <Badge>{c.source}</Badge> : <span />}
         <Stars value={c.rating} />
@@ -871,7 +869,13 @@ function CandidateFormModal({ candidate, defaultPostingId, jobs, onClose, onSave
             <input className="input" type="number" min={0} step={500} {...f.bind('expected_salary')} placeholder="ör. 75000" />
           </Field>
           <Field label="Notlar" error={f.errors.notes} htmlFor="f-notes" className="full">
-            <textarea className="textarea" rows={4} {...f.bind('notes')} maxLength={5000} placeholder="Mülakat notları, referans bilgileri…" />
+            <textarea
+              className="textarea"
+              rows={4}
+              {...f.bind('notes')}
+              maxLength={5000}
+              placeholder="Mülakat notları, referans bilgileri…"
+            />
           </Field>
         </div>
         {isEdit && (

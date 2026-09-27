@@ -44,10 +44,7 @@ export default function Announcements() {
   const closeModal = useCallback(() => setEditing(null), []);
 
   const list = useMemo(
-    () =>
-      (data ?? []).filter((a) =>
-        matches(`${a.title} ${a.body} ${a.company_name ?? 'Tüm Grup'} ${a.author_name ?? ''}`, search),
-      ),
+    () => (data ?? []).filter((a) => matches(`${a.title} ${a.body} ${a.company_name ?? 'Tüm Grup'} ${a.author_name ?? ''}`, search)),
     [data, search],
   );
 
@@ -76,9 +73,7 @@ export default function Announcements() {
       <PageHeader
         title="Duyurular"
         subtitle={
-          isHR
-            ? 'Tüm grup şirketlerine veya tek bir şirkete duyuru yayınlayın.'
-            : 'FIMAR Holding ve şirketinizle ilgili güncel duyurular.'
+          isHR ? 'Tüm grup şirketlerine veya tek bir şirkete duyuru yayınlayın.' : 'FIMAR Holding ve şirketinizle ilgili güncel duyurular.'
         }
         actions={
           isHR && (

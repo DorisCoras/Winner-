@@ -13,7 +13,7 @@ const assetSchema = z.object({
   name: zText(150, 'Demirbaş adı / modeli zorunludur.'),
   serial_no: zOptText(100),
   value: z
-    .union([z.coerce.number().min(0), z.literal(''), z.null()])
+    .union([z.literal(''), z.null(), z.coerce.number().min(0)])
     .optional()
     .transform((v) => (v === '' || v == null ? null : v)),
   notes: zOptText(1000),

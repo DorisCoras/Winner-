@@ -162,9 +162,7 @@ export default function AssetReceipt() {
           <SignBox title="Teslim Alan (Personel)" name={r.employee_name} date={formatDate(r.assigned_at)} />
         </div>
 
-        <div className="receipt-footnote">
-          İşbu tutanak iki nüsha olarak düzenlenmiş olup bir nüshası personele teslim edilmiştir.
-        </div>
+        <div className="receipt-footnote">İşbu tutanak iki nüsha olarak düzenlenmiş olup bir nüshası personele teslim edilmiştir.</div>
       </div>
     </>
   );

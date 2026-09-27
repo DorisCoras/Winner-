@@ -1,6 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Download, History, Package, PackageCheck, Pencil, Plus, Printer, Trash2, Undo2, UserPlus, Warehouse } from 'lucide-react';
+import {
+  AlertTriangle,
+  Download,
+  History,
+  Package,
+  PackageCheck,
+  Pencil,
+  Plus,
+  Printer,
+  Trash2,
+  Undo2,
+  UserPlus,
+  Warehouse,
+} from 'lucide-react';
 import { api, qs, useApi } from '../api.js';
 import { useLookups } from '../lookups.jsx';
 import { downloadCsv } from '../csv.js';
@@ -235,8 +248,19 @@ export default function Assets() {
       />
 
       <div className="grid grid-4 mb-2">
-        <StatCard icon={Package} label="Toplam demirbaş" value={formatNumber(stats.total)} sub={`Toplam değer ${formatMoneyCompact(stats.totalValue)}`} />
-        <StatCard icon={PackageCheck} tone="teal" label="Zimmetli" value={formatNumber(stats.assigned)} sub={`${stats.holders} personelde`} />
+        <StatCard
+          icon={Package}
+          label="Toplam demirbaş"
+          value={formatNumber(stats.total)}
+          sub={`Toplam değer ${formatMoneyCompact(stats.totalValue)}`}
+        />
+        <StatCard
+          icon={PackageCheck}
+          tone="teal"
+          label="Zimmetli"
+          value={formatNumber(stats.assigned)}
+          sub={`${stats.holders} personelde`}
+        />
         <StatCard icon={Warehouse} tone="green" label="Depoda" value={formatNumber(stats.inStock)} sub="Zimmetlenmeye hazır" />
         <StatCard
           icon={AlertTriangle}
@@ -472,8 +496,8 @@ function AssignModal({ asset, onClose, onDone }) {
       >
         <Alert tone="success" title="Zimmet işlemi tamamlandı">
           <strong>{result.asset_name}</strong>
-          {result.serial_no ? ` (${result.serial_no})` : ''}, {formatDate(result.assigned_at)} tarihinde <strong>{result.employee_name}</strong>{' '}
-          adına zimmetlendi. Teslim sırasında imzalatmak için zimmet tutanağını yazdırabilirsiniz.
+          {result.serial_no ? ` (${result.serial_no})` : ''}, {formatDate(result.assigned_at)} tarihinde{' '}
+          <strong>{result.employee_name}</strong> adına zimmetlendi. Teslim sırasında imzalatmak için zimmet tutanağını yazdırabilirsiniz.
         </Alert>
       </Modal>
     );

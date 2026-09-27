@@ -10,7 +10,9 @@
 }
 .ann-card.pinned {
   border-color: var(--primary);
-  box-shadow: inset 3px 0 0 var(--primary), var(--shadow);
+  box-shadow:
+    inset 3px 0 0 var(--primary),
+    var(--shadow);
   background: color-mix(in srgb, var(--primary-soft) 40%, var(--surface));
 }
 .ann-head {

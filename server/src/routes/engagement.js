@@ -93,6 +93,7 @@ export default function engagementRoutes(db) {
   // --- Performans değerlendirmeleri ---
 
   function canWriteReview(user, employeeId) {
+    if (employeeId === user.employee_id) return false; // kimse kendini değerlendiremez
     if (isHR(user)) return true;
     return user.role === 'yonetici' && subordinateIds(db, user.employee_id).includes(employeeId);
   }
@@ -105,10 +106,10 @@ export default function engagementRoutes(db) {
       const ids = [...visible];
       where.push(`pr.employee_id IN (${ids.map(() => '?').join(',') || 'NULL'})`);
       params.push(...ids);
-      // Çalışan kendi değerlendirmesini yalnızca tamamlandığında görür.
-      where.push("(pr.employee_id != ? OR pr.status = 'tamamlandi')");
-      params.push(req.user.employee_id ?? -1);
     }
+    // Çalışan (İK dahil) kendi değerlendirmesini yalnızca tamamlandığında görür.
+    where.push("(pr.employee_id != ? OR pr.status = 'tamamlandi')");
+    params.push(req.user.employee_id ?? -1);
     if (req.query.employee_id) {
       where.push('pr.employee_id = ?');
       params.push(Number(req.query.employee_id));
@@ -145,7 +146,7 @@ export default function engagementRoutes(db) {
       reviewer_id: req.user.id,
     });
     audit(db, req, 'olustur', 'performans', id, { employee_id: b.employee_id, period: b.period });
-    res.status(201).json(parseReview(db.prepare(`${REVIEW_SELECT} WHERE pr.id = ?`).get(id)));
+    res.status(201).json({ ...parseReview(db.prepare(`${REVIEW_SELECT} WHERE pr.id = ?`).get(id)), can_edit: true });
   });
 
   r.put('/reviews/:id', requireAuth, (req, res) => {
@@ -167,7 +168,8 @@ export default function engagementRoutes(db) {
       updated_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
     });
     audit(db, req, 'guncelle', 'performans', id);
-    res.json(parseReview(db.prepare(`${REVIEW_SELECT} WHERE pr.id = ?`).get(id)));
+    const updated = parseReview(db.prepare(`${REVIEW_SELECT} WHERE pr.id = ?`).get(id));
+    res.json({ ...updated, can_edit: updated.status === 'taslak' || isHR(req.user) });
   });
 
   r.post('/reviews/:id/acknowledge', requireAuth, (req, res) => {

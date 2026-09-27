@@ -207,6 +207,9 @@ export function Tabs({ tabs, active, onChange }) {
 // Modal, onay kutusu, bildirimler
 // ---------------------------------------------------------------------------
 
+// Açık modalların yığını: Escape yalnızca en üstteki modalı kapatır (iç içe onay kutuları için).
+const modalStack = [];
+
 export function Modal({ open, onClose, title, children, footer, size = '' }) {
   const ref = useRef(null);
   // onClose ref'te tutulur: ebeveyn her render'da yeni fonksiyon verse de odak/scroll sıfırlanmaz.
@@ -214,7 +217,14 @@ export function Modal({ open, onClose, title, children, footer, size = '' }) {
   onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => e.key === 'Escape' && onCloseRef.current?.();
+    const token = {};
+    modalStack.push(token);
+    const onKey = (e) => {
+      if (e.key === 'Escape' && modalStack.at(-1) === token) {
+        e.stopPropagation();
+        onCloseRef.current?.();
+      }
+    };
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -225,7 +235,8 @@ export function Modal({ open, onClose, title, children, footer, size = '' }) {
     }, 30);
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
+      modalStack.splice(modalStack.indexOf(token), 1);
+      if (!modalStack.length) document.body.style.overflow = prev;
       clearTimeout(t);
     };
   }, [open]);

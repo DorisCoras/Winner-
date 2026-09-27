@@ -238,3 +238,12 @@ test('farklı origin ile durum değiştiren istek reddedilir', async () => {
   });
   assert.equal(res.status, 403);
 });
+
+test('şifre değiştirme: eski şifre doğrulanır, yeni şifreyle giriş yapılır', async () => {
+  const me = await login('personel@fimar.com.tr');
+  assert.equal((await me('/auth/change-password', { method: 'POST', body: { current_password: 'yanlis', new_password: 'YeniSifre2026' } })).status, 400);
+  assert.equal((await me('/auth/change-password', { method: 'POST', body: { current_password: 'Demo1234', new_password: 'kisa' } })).status, 400);
+  const ok = await me('/auth/change-password', { method: 'POST', body: { current_password: 'Demo1234', new_password: 'YeniSifre2026' } });
+  assert.equal(ok.status, 200);
+  await login('personel@fimar.com.tr', 'YeniSifre2026');
+});

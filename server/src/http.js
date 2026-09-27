@@ -68,7 +68,7 @@ export const zBool = z
   .optional()
   .transform((v) => (v ? 1 : 0));
 export const zOptId = z
-  .union([z.coerce.number().int().positive(), z.literal(''), z.null()])
+  .union([z.literal(''), z.null(), z.coerce.number().int().positive()])
   .optional()
   .transform((v) => (v === '' || v == null ? null : v));
 export const zId = z.coerce.number({ message: 'Seçim yapınız.' }).int().positive('Seçim yapınız.');

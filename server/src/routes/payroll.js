@@ -19,7 +19,7 @@ const paramsSchema = z.object({
   brackets: z
     .array(
       z.object({
-        upTo: z.union([z.coerce.number().positive(), z.null()]),
+        upTo: z.union([z.null(), z.coerce.number().positive()]),
         rate: z.coerce.number().min(0).max(1),
       }),
     )
