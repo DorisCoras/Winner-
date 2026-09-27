@@ -9,6 +9,7 @@ import { calculateSeverance } from '../lib/severance.js';
 import { isValidTcKimlik, isValidTrIban, normalizeIban } from '../lib/validators.js';
 import { HttpError, idParam, notFound, parseBody, zDate, zId, zMoney, zOptDate, zOptId, zOptText, zText } from '../http.js';
 import {
+  annualLeaveUsage,
   assertCanViewEmployee,
   audit,
   canViewSensitive,
@@ -50,6 +51,7 @@ const employeeSchema = z.object({
     .refine((v) => v == null || isValidTrIban(v), 'Geçersiz IBAN (TR ile başlayan 26 karakter olmalı).'),
   sgk_no: zOptText(40),
   leave_carryover: z.coerce.number().min(-365).max(365).optional().default(0),
+  leave_base_date: zOptDate,
   notes: zOptText(2000),
 });
 
@@ -62,7 +64,7 @@ const accountSchema = z.object({
 // KVKK: bu alanlar yalnızca İK/yönetici hesapları ve çalışanın kendisi tarafından görülebilir.
 const SENSITIVE_FIELDS = [
   'tc_kimlik', 'birth_date', 'marital_status', 'blood_type', 'address', 'city', 'emergency_contact',
-  'emergency_phone', 'gross_salary', 'iban', 'sgk_no', 'notes', 'exit_code', 'exit_note', 'leave_carryover',
+  'emergency_phone', 'gross_salary', 'iban', 'sgk_no', 'notes', 'exit_code', 'exit_note', 'leave_carryover', 'leave_base_date',
 ];
 
 function redact(emp, user) {
@@ -312,16 +314,12 @@ export default function employeeRoutes(db) {
     if (!emp) throw notFound('Personel');
     if (b.exit_date < emp.hire_date) throw new HttpError(400, 'Çıkış tarihi işe giriş tarihinden önce olamaz.');
     const code = EXIT_CODES.find((c) => c.code === b.exit_code);
-    const used = db
-      .prepare(
-        `SELECT COALESCE(SUM(r.days), 0) AS used FROM leave_requests r JOIN leave_types t ON t.id = r.leave_type_id
-         WHERE r.employee_id = ? AND r.status = 'onaylandi' AND t.deducts_balance = 1`,
-      )
-      .get(id).used;
+    const { used } = annualLeaveUsage(db, id, emp.leave_base_date);
     const balance = leaveBalance({
       hireDate: emp.hire_date,
       birthDate: emp.birth_date,
       carryover: emp.leave_carryover,
+      baseDate: emp.leave_base_date,
       usedDays: used,
       asOf: b.exit_date,
     });

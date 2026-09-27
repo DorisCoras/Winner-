@@ -60,14 +60,21 @@ export function countLeaveDays(start, end, { holidays = new Map(), saturdayWorkd
   return total;
 }
 
-/** Yıllık izin bakiyesi özeti. usedDays = onaylanmış yıllık izin günleri toplamı. */
-export function leaveBalance({ hireDate, birthDate, carryover = 0, usedDays = 0, pendingDays = 0, asOf = today() }) {
-  const history = entitlementHistory(hireDate, birthDate, asOf);
-  const earned = history.reduce((sum, h) => sum + h.days, 0);
+/**
+ * Yıllık izin bakiyesi özeti.
+ * - baseDate (devir tarihi) verilirse `carryover` o tarihteki kalan bakiyedir; yalnızca bu tarihten
+ *   SONRAKİ yıldönümlerinde kazanılan haklar eklenir (sisteme geçişte kullanılır).
+ * - baseDate yoksa işe girişten itibaren tüm hak edişler sayılır, carryover ek düzeltmedir.
+ * - usedDays/pendingDays çağıran tarafından (devir tarihinden itibaren) hesaplanır.
+ */
+export function leaveBalance({ hireDate, birthDate, carryover = 0, baseDate = null, usedDays = 0, pendingDays = 0, asOf = today() }) {
+  const history = entitlementHistory(hireDate, birthDate, asOf).map((h) => ({ ...h, counted: !baseDate || h.date > baseDate }));
+  const earned = history.reduce((sum, h) => sum + (h.counted ? h.days : 0), 0);
   const balance = carryover + earned - usedDays;
   return {
     earned,
     carryover,
+    baseDate,
     used: usedDays,
     pending: pendingDays,
     balance,

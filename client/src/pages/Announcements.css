@@ -1,0 +1,52 @@
+/* Duyurular */
+
+.ann-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ann-card {
+  padding: 16px 18px;
+}
+.ann-card.pinned {
+  border-color: var(--primary);
+  box-shadow: inset 3px 0 0 var(--primary), var(--shadow);
+  background: color-mix(in srgb, var(--primary-soft) 40%, var(--surface));
+}
+.ann-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ann-title {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.ann-title svg {
+  flex: none;
+  color: var(--primary-text);
+}
+.ann-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+.ann-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-top: 12px;
+  color: var(--text);
+}
+.ann-actions {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}

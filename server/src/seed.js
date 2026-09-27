@@ -291,24 +291,26 @@ export function seedDemo(db) {
       return x;
     };
 
+    // Sisteme geçiş: yılbaşı itibarıyla devreden bakiye girilir, sonraki hak edişler otomatik eklenir.
+    const baseDate = `${year}-01-01`;
     for (const emp of active) {
       const history = entitlementHistory(emp.hire_date, emp.birth_date, now);
-      const earned = history.reduce((s, h) => s + h.days, 0);
+      if (!history.length) continue;
       let used = 0;
-      if (history.length) {
-        // Yıl içinde 1–2 geçmiş yıllık izin.
-        const count = between(1, 2);
-        let cursor = `${year}-01-12`;
-        for (let i = 0; i < count; i++) {
-          const start = monday(randomDate(cursor, addDays(cursor, 70)));
-          if (start >= addDays(now, -25)) break;
-          const end = addDays(start, between(2, 9));
-          used += addLeave(emp, 'yillik', start, end, 'onaylandi', pick(['Aile ziyareti', 'Tatil', 'Kişisel işler', null]));
-          cursor = addDays(end, 30);
-        }
-        const target = emp.id === developer.id ? 16 : between(4, history.at(-1).days + 6);
-        db.prepare('UPDATE employees SET leave_carryover = ? WHERE id = ?').run(target + used - earned, emp.id);
+      const count = between(1, 2);
+      let cursor = history[0].date > `${year}-01-12` ? history[0].date : `${year}-01-12`;
+      for (let i = 0; i < count; i++) {
+        const start = monday(randomDate(cursor, addDays(cursor, 70)));
+        if (start >= addDays(now, -25)) break;
+        const end = addDays(start, between(2, 9));
+        used += addLeave(emp, 'yillik', start, end, 'onaylandi', pick(['Aile ziyareti', 'Tatil', 'Kişisel işler', null]));
+        cursor = addDays(end, 30);
       }
+      if (fullYearsBetween(emp.hire_date, baseDate) < 1) continue;
+      const earnedSinceBase = history.filter((h) => h.date > baseDate).reduce((s, h) => s + h.days, 0);
+      const carry =
+        emp.id === developer.id ? 16 + used - earnedSinceBase : Math.max(between(0, 10), used - earnedSinceBase + between(2, 8));
+      db.prepare('UPDATE employees SET leave_carryover = ?, leave_base_date = ? WHERE id = ?').run(carry, baseDate, emp.id);
     }
 
     // Bugün izinde olanlar, bekleyen talepler, rapor ve ücretsiz izin örnekleri.

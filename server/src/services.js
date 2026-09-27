@@ -75,22 +75,31 @@ export function computeLeaveDays(db, start, end, halfDay) {
   });
 }
 
-export function employeeLeaveBalance(db, employeeId, excludeRequestId = null) {
-  const emp = db.prepare('SELECT hire_date, birth_date, leave_carryover FROM employees WHERE id = ?').get(employeeId);
-  if (!emp) throw new HttpError(404, 'Personel bulunamadı.');
-  const sums = db
+/** Devir tarihinden (varsa) itibaren onaylanmış ve bekleyen yıllık izin günleri. */
+export function annualLeaveUsage(db, employeeId, baseDate = null, excludeRequestId = null) {
+  return db
     .prepare(
       `SELECT
          COALESCE(SUM(CASE WHEN r.status = 'onaylandi' THEN r.days END), 0) AS used,
          COALESCE(SUM(CASE WHEN r.status = 'beklemede' THEN r.days END), 0) AS pending
        FROM leave_requests r JOIN leave_types t ON t.id = r.leave_type_id
-       WHERE r.employee_id = ? AND t.deducts_balance = 1 AND r.id IS NOT ?`,
+       WHERE r.employee_id = ? AND t.deducts_balance = 1 AND r.id IS NOT ?
+         AND (? IS NULL OR r.start_date >= ?)`,
     )
-    .get(employeeId, excludeRequestId);
+    .get(employeeId, excludeRequestId, baseDate, baseDate);
+}
+
+export function employeeLeaveBalance(db, employeeId, excludeRequestId = null) {
+  const emp = db
+    .prepare('SELECT hire_date, birth_date, leave_carryover, leave_base_date FROM employees WHERE id = ?')
+    .get(employeeId);
+  if (!emp) throw new HttpError(404, 'Personel bulunamadı.');
+  const sums = annualLeaveUsage(db, employeeId, emp.leave_base_date, excludeRequestId);
   return leaveBalance({
     hireDate: emp.hire_date,
     birthDate: emp.birth_date,
     carryover: emp.leave_carryover,
+    baseDate: emp.leave_base_date,
     usedDays: sums.used,
     pendingDays: sums.pending,
   });
@@ -140,23 +149,27 @@ export function payrollDays(db, employee, year, month) {
   return Math.max(0, Math.min(30, days));
 }
 
-export function cumulativeBaseBefore(db, employeeId, year, month, excludeRunId = null) {
+/**
+ * Yıl içinde önceki ayların gelir vergisi matrahı toplamı. Kümülatif matrah işveren bazında
+ * yürür; grup şirketleri ayrı tüzel kişilik olduğundan şirket değişiminde sıfırdan başlar.
+ */
+export function cumulativeBaseBefore(db, employeeId, companyId, year, month, excludeRunId = null) {
   return db
     .prepare(
       `SELECT COALESCE(SUM(i.income_tax_base), 0) AS total
        FROM payroll_items i JOIN payroll_runs r ON r.id = i.run_id
-       WHERE i.employee_id = ? AND r.year = ? AND r.month < ? AND r.id IS NOT ?`,
+       WHERE i.employee_id = ? AND r.company_id = ? AND r.year = ? AND r.month < ? AND r.id IS NOT ?`,
     )
-    .get(employeeId, year, month, excludeRunId).total;
+    .get(employeeId, companyId, year, month, excludeRunId).total;
 }
 
 /** Computes a payroll item for an employee (not persisted). */
-export function computePayrollItem(db, { employee, year, month, runId = null, extraGross = 0, deductions = 0, days = null }) {
+export function computePayrollItem(db, { employee, companyId = employee.company_id, year, month, runId = null, extraGross = 0, deductions = 0, days = null }) {
   const params = payrollParams(db, year);
   const d = days ?? payrollDays(db, employee, year, month);
   const baseGross = Math.round(((employee.gross_salary * d) / 30) * 100) / 100;
   const gross = baseGross + extraGross;
-  const cum = cumulativeBaseBefore(db, employee.id, year, month, runId);
+  const cum = cumulativeBaseBefore(db, employee.id, companyId, year, month, runId);
   const r = calculateMonth({
     gross,
     month,
@@ -210,6 +223,7 @@ export function fillPayrollRun(db, runId, companyId, year, month, preserve = new
     const prev = preserve.get(emp.id);
     const item = computePayrollItem(db, {
       employee: emp,
+      companyId,
       year,
       month,
       runId,

@@ -1,0 +1,106 @@
+/* İzin takvimi — styles.css'teki .calendar-table üzerine hücre renkleri ve küçük yardımcılar. */
+
+.lc-title {
+  font-size: 17px;
+  margin-left: 4px;
+  min-width: 128px;
+}
+
+.calendar-table th.lc-day {
+  line-height: 1.15;
+  padding: 4px 0;
+}
+.lc-day-name {
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.calendar-table .lc-name-col {
+  max-width: 230px;
+}
+.lc-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 12.5px;
+  max-width: 206px;
+}
+.lc-sub {
+  color: var(--text-3);
+  font-size: 11px;
+  max-width: 206px;
+}
+
+/* İzinli günler: renk, izin türünden (--lc-color) gelir. */
+.calendar-table td.lc-leave {
+  background: var(--lc-color);
+}
+/* Hafta sonu / tatil günleri izne sayılmaz: daha açık ton. */
+.calendar-table td.lc-leave.off {
+  background: color-mix(in srgb, var(--lc-color) 30%, transparent);
+}
+/* Onay bekleyen izinler: çizgili desen. */
+.calendar-table td.lc-leave.pending {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--lc-color) 75%, transparent) 0 4px,
+    color-mix(in srgb, var(--lc-color) 20%, transparent) 4px 8px
+  );
+}
+.calendar-table td.lc-leave.pending.off {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--lc-color) 30%, transparent) 0 4px,
+    transparent 4px 8px
+  );
+}
+/* Yarım gün: hücrenin yarısı dolu. */
+.calendar-table td.lc-leave.half {
+  background: linear-gradient(135deg, var(--lc-color) 50%, transparent 50%);
+}
+.calendar-table td.lc-leave.half.pending {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--lc-color) 45%, transparent) 50%, transparent 50%);
+}
+
+/* Lejant örnekleri */
+.lc-legend {
+  margin-bottom: 0;
+}
+.lc-legend i {
+  width: 12px;
+  height: 12px;
+}
+.lc-legend i.lc-sw-pending {
+  background: repeating-linear-gradient(135deg, #64748b 0 2px, color-mix(in srgb, #64748b 20%, transparent) 2px 4px);
+}
+.lc-legend i.lc-sw-off {
+  background: color-mix(in srgb, #64748b 30%, transparent);
+}
+.lc-legend i.lc-sw-weekend {
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+.lc-legend i.lc-sw-holiday {
+  background: var(--warning-soft);
+  box-shadow: inset 0 0 0 1px var(--warning);
+}
+.lc-legend i.lc-sw-today {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.lc-holiday-date {
+  min-width: 118px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+  .calendar-table .lc-name-col {
+    min-width: 128px;
+    max-width: 128px;
+    padding: 0 8px;
+  }
+  .lc-name,
+  .lc-sub {
+    max-width: 112px;
+  }
+}

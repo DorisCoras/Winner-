@@ -30,6 +30,11 @@ test('hak ediş geçmişi her yıldönümünde birikir', () => {
   assert.equal(bal.balance, 70);
   assert.equal(bal.available, 65);
   assert.equal(bal.next.date, '2027-03-15');
+  // Devir tarihi: yalnızca sonraki yıldönümleri eklenir
+  const migrated = leaveBalance({ hireDate: '2019-03-15', birthDate: '1990-01-01', carryover: 12, baseDate: '2026-01-01', usedDays: 5, asOf: '2026-09-27' });
+  assert.equal(migrated.earned, 20);
+  assert.equal(migrated.balance, 27);
+  assert.equal(migrated.history.filter((h) => h.counted).length, 1);
 });
 
 test('izin günü hesabı hafta sonu ve resmi tatilleri düşer', () => {

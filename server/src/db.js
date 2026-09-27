@@ -11,7 +11,14 @@ export function openDatabase(path) {
   db.exec('PRAGMA foreign_keys = ON;');
   if (path !== ':memory:') db.exec('PRAGMA journal_mode = WAL;');
   db.exec(readFileSync(join(here, 'schema.sql'), 'utf8'));
+  migrate(db);
   return db;
+}
+
+/** Şema dosyasından sonra eklenen sütunları eski veritabanlarına uygular. */
+function migrate(db) {
+  const columns = (table) => new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name));
+  if (!columns('employees').has('leave_base_date')) db.exec('ALTER TABLE employees ADD COLUMN leave_base_date TEXT');
 }
 
 const openTransactions = new WeakSet();

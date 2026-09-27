@@ -1,0 +1,92 @@
+/* Organizasyon şeması — styles.css içindeki .org-tree / .org-node üzerine sayfaya özel ayarlar. */
+
+.orgc-scroll {
+  overflow-x: auto;
+  padding: 16px 16px 20px;
+}
+
+.orgc-tree {
+  min-width: max-content;
+}
+
+/* Bağlantı çizgileri: dikey çizgi her <li> için ayrı çizilir, böylece son çocuğun alt ağacına taşmaz. */
+.orgc-tree.org-tree ul {
+  padding-left: 36px;
+}
+.orgc-tree.org-tree ul::before {
+  display: none;
+}
+.orgc-tree.org-tree ul > li::before {
+  left: -10px;
+  top: 29px;
+  width: 10px;
+}
+.orgc-tree.org-tree ul > li::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--border-strong);
+}
+.orgc-tree.org-tree ul > li:last-child::after {
+  bottom: auto;
+  height: 29px;
+}
+
+.orgc-tree .org-node {
+  align-items: flex-start;
+  min-width: 240px;
+  max-width: 360px;
+  transition: opacity 0.12s, box-shadow 0.12s;
+}
+.orgc-node-text {
+  flex: 1;
+  min-width: 0;
+}
+.orgc-toggle {
+  flex: none;
+  gap: 3px;
+  margin: 2px -4px 0 4px;
+  color: var(--primary-text);
+  background: var(--primary-soft);
+}
+.orgc-toggle:hover {
+  background: var(--primary-soft);
+  filter: brightness(0.97);
+}
+.orgc-match {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.orgc-dim {
+  opacity: 0.55;
+}
+
+/* Şirket / departman görünümü */
+.orgc-dept {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  min-width: 0;
+}
+.orgc-dept-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.orgc-dept .list > li {
+  padding: 8px 12px;
+  gap: 10px;
+}
+
+@media print {
+  .orgc-dim {
+    opacity: 1;
+  }
+}

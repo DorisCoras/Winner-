@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS employees (
   exit_code         TEXT,
   exit_note         TEXT,
   leave_carryover   REAL NOT NULL DEFAULT 0,
+  leave_base_date   TEXT,
   notes             TEXT,
   created_at        TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at        TEXT NOT NULL DEFAULT (datetime('now'))

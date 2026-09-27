@@ -183,6 +183,7 @@ export default function payrollRoutes(db) {
     const emp = db.prepare('SELECT * FROM employees WHERE id = ?').get(item.employee_id);
     const computed = computePayrollItem(db, {
       employee: emp,
+      companyId: run.company_id,
       year: run.year,
       month: run.month,
       runId,

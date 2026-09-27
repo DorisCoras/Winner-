@@ -1,0 +1,238 @@
+/* Bordro sayfalarına özel küçük eklemeler (genel stiller styles.css'tedir). */
+
+/* Tablo hücresinde ikinci satır (ör. ek ödeme, istisna) */
+.cell-sub {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* İki seçenekli düğme grubu (Brütten Nete / Netten Brüte) */
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-2);
+}
+.segmented button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text-3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.segmented button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+/* Maaş hesaplama düzeni: sonuçlar + parametre kartı */
+.calc-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 16px;
+  align-items: flex-end;
+}
+.calc-form .field {
+  min-width: 150px;
+}
+.calc-form .calc-amount {
+  flex: 1 1 200px;
+  max-width: 280px;
+}
+.calc-form .checkbox {
+  min-height: 38px;
+}
+.calc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+.bracket-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+.bracket-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+.bracket-list li:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 1180px) {
+  .calc-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .calc-form .field,
+  .calc-form .calc-amount {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+}
+
+/* ---------- Ücret hesap pusulası ---------- */
+
+.payslip {
+  font-size: 13px;
+}
+.payslip-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #111;
+}
+.payslip-company .name {
+  font-size: 15px;
+  font-weight: 700;
+}
+.payslip-company div {
+  line-height: 1.5;
+}
+.payslip-title {
+  text-align: right;
+}
+.payslip-title h1 {
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+.payslip-title .period {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.payslip-draft {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border: 1px solid #b45309;
+  color: #b45309;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.payslip-section {
+  margin-top: 18px;
+}
+.payslip-section h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin: 0 0 6px;
+  color: #333;
+}
+.print-page .payslip-info td:nth-child(odd) {
+  color: #555;
+  width: 22%;
+}
+.print-page .payslip-info td:nth-child(even) {
+  font-weight: 600;
+}
+.print-page .payslip-lines td:first-child {
+  width: 68%;
+}
+.print-page .payslip-lines tr.info td {
+  color: #555;
+}
+.print-page .payslip-lines tr.total td {
+  font-weight: 700;
+  background: #f3f5f9;
+}
+.payslip-net {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border: 2px solid #111;
+}
+.payslip-net .label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.payslip-net .amount {
+  font-size: 24px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+.payslip-signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 36px;
+}
+.payslip-signatures .sig {
+  text-align: center;
+}
+.payslip-signatures .sig-line {
+  border-top: 1px solid #111;
+  margin-top: 56px;
+  padding-top: 6px;
+  font-size: 12px;
+  color: #444;
+}
+.payslip-footnote {
+  margin-top: 24px;
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+}
+.print-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 820px;
+  margin: 0 auto 14px;
+}
+
+@media (max-width: 600px) {
+  .print-page.payslip {
+    padding: 20px 14px;
+  }
+  .payslip-title {
+    text-align: left;
+  }
+  .payslip-signatures {
+    gap: 16px;
+  }
+  .print-page .payslip-info td:nth-child(odd) {
+    width: auto;
+  }
+}
+
+@media print {
+  .print-page.payslip {
+    padding: 0;
+  }
+  .payslip-section,
+  .payslip-net,
+  .payslip-signatures {
+    break-inside: avoid;
+  }
+}
