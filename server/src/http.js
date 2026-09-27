@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Özel mesaj verilmemiş doğrulama hataları da Türkçe dönsün.
+z.config(z.locales.tr());
+
 export class HttpError extends Error {
   constructor(status, message, details) {
     super(message);

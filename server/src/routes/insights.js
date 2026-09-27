@@ -221,19 +221,28 @@ export default function insightRoutes(db) {
 
   r.get('/reports/turnover', hr, (req, res) => {
     const year = Number(req.query.year) || Number(today().slice(0, 4));
+    const companyId = req.query.company_id ? Number(req.query.company_id) : null;
+    const now = today();
+    const scope = '(? IS NULL OR company_id = ?)';
     const months = [];
     for (let m = 1; m <= 12; m++) {
       const start = monthStart(year, m);
-      const end = monthEnd(year, m);
-      const hires = db.prepare('SELECT COUNT(*) AS n FROM employees WHERE hire_date BETWEEN ? AND ?').get(start, end).n;
-      const exits = db.prepare('SELECT COUNT(*) AS n FROM employees WHERE exit_date BETWEEN ? AND ?').get(start, end).n;
+      if (start > now) {
+        // Henüz yaşanmamış aylar
+        months.push({ month: m, hires: 0, exits: 0, headcount: null, future: true });
+        continue;
+      }
+      const end = monthEnd(year, m) < now ? monthEnd(year, m) : now;
+      const hires = db.prepare(`SELECT COUNT(*) AS n FROM employees WHERE hire_date BETWEEN ? AND ? AND ${scope}`).get(start, end, companyId, companyId).n;
+      const exits = db.prepare(`SELECT COUNT(*) AS n FROM employees WHERE exit_date BETWEEN ? AND ? AND ${scope}`).get(start, end, companyId, companyId).n;
       const headcount = db
-        .prepare('SELECT COUNT(*) AS n FROM employees WHERE hire_date <= ? AND (exit_date IS NULL OR exit_date > ?)')
-        .get(end, end).n;
+        .prepare(`SELECT COUNT(*) AS n FROM employees WHERE hire_date <= ? AND (exit_date IS NULL OR exit_date > ?) AND ${scope}`)
+        .get(end, end, companyId, companyId).n;
       months.push({ month: m, hires, exits, headcount });
     }
+    const elapsed = months.filter((x) => x.headcount !== null);
     const totalExits = months.reduce((s, x) => s + x.exits, 0);
-    const avgHeadcount = months.reduce((s, x) => s + x.headcount, 0) / 12;
+    const avgHeadcount = elapsed.length ? elapsed.reduce((s, x) => s + x.headcount, 0) / elapsed.length : 0;
     res.json({
       year,
       months,
@@ -244,9 +253,9 @@ export default function insightRoutes(db) {
       exit_reasons: db
         .prepare(
           `SELECT exit_code AS code, COUNT(*) AS count FROM employees
-           WHERE exit_date BETWEEN ? AND ? GROUP BY exit_code ORDER BY count DESC`,
+           WHERE exit_date BETWEEN ? AND ? AND ${scope} GROUP BY exit_code ORDER BY count DESC`,
         )
-        .all(`${year}-01-01`, `${year}-12-31`),
+        .all(`${year}-01-01`, `${year}-12-31`, companyId, companyId),
     });
   });
 
@@ -275,9 +284,10 @@ export default function insightRoutes(db) {
         `SELECT t.code, t.name, t.color, COALESCE(SUM(r.days), 0) AS days, COUNT(r.id) AS requests
          FROM leave_types t LEFT JOIN leave_requests r ON r.leave_type_id = t.id AND r.status = 'onaylandi'
            AND r.start_date BETWEEN ? AND ?
+           AND (? IS NULL OR r.employee_id IN (SELECT id FROM employees WHERE company_id = ?))
          GROUP BY t.id ORDER BY t.sort`,
       )
-      .all(`${year}-01-01`, `${year}-12-31`);
+      .all(`${year}-01-01`, `${year}-12-31`, companyId, companyId);
     res.json({ year, types, totals, employees: rows });
   });
 

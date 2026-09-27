@@ -108,7 +108,6 @@ export default function Announcements() {
                   </h2>
                   <div className="ann-meta">
                     {a.company_id ? <Badge>{a.company_name}</Badge> : <Badge tone="teal">Tüm Grup</Badge>}
-                    {a.pinned ? <Badge tone="blue">Sabitlendi</Badge> : null}
                     <span>{a.author_name ?? 'İnsan Kaynakları'}</span>
                     <span aria-hidden="true">·</span>
                     <time dateTime={a.created_at}>{formatDateTime(a.created_at)}</time>

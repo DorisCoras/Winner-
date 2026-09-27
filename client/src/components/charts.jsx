@@ -17,12 +17,15 @@ function useWidth() {
   return [ref, width];
 }
 
-function niceMax(v) {
-  if (v <= 0) return 1;
-  const exp = 10 ** Math.floor(Math.log10(v));
-  const f = v / exp;
-  const nice = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
-  return nice * exp;
+/** Okunabilir eksen adımı; tamsayı verilerde adım en az 1 ve tamsayıdır (0, 1, 1, 2 gibi tekrarlar oluşmaz). */
+function niceScale(max, integer) {
+  if (max <= 0) return { max: integer ? 4 : 1, step: integer ? 1 : 0.25 };
+  const raw = max / 4;
+  const exp = 10 ** Math.floor(Math.log10(raw));
+  const f = raw / exp;
+  let step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * exp;
+  if (integer) step = Math.max(1, Math.ceil(step));
+  return { max: step * Math.ceil(max / step), step };
 }
 
 export function Legend({ series }) {
@@ -100,8 +103,10 @@ export function ColumnChart({ data, series, height = 220, format = formatNumber,
   const pad = { top: 12, right: 8, bottom: 26, left: 52 };
   const innerW = Math.max(0, width - pad.left - pad.right);
   const innerH = height - pad.top - pad.bottom;
-  const maxVal = niceMax(Math.max(0, ...data.flatMap((d) => series.map((s) => d[s.key] ?? 0))));
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * maxVal);
+  const values = data.flatMap((d) => series.map((s) => d[s.key] ?? 0));
+  const scale = niceScale(Math.max(0, ...values), values.every(Number.isInteger));
+  const maxVal = scale.max;
+  const ticks = Array.from({ length: Math.round(maxVal / scale.step) + 1 }, (_, i) => i * scale.step);
   const band = data.length ? innerW / data.length : 0;
   const groupW = Math.min(band * 0.7, series.length * 24 + (series.length - 1) * 2);
   const barW = series.length ? (groupW - (series.length - 1) * 2) / series.length : 0;

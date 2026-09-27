@@ -50,7 +50,7 @@ const YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i);
 
 const TABS = [
   { key: 'personel', label: 'Personel Dağılımı', icon: Users, filters: ['company'] },
-  { key: 'giris-cikis', label: 'Giriş-Çıkış', icon: Repeat, filters: ['year'] },
+  { key: 'giris-cikis', label: 'Giriş-Çıkış', icon: Repeat, filters: ['year', 'company'] },
   { key: 'izin', label: 'İzin Kullanımı', icon: CalendarDays, filters: ['year', 'company'] },
   { key: 'bordro', label: 'Bordro Maliyeti', icon: Wallet, filters: ['year'] },
 ];
@@ -101,7 +101,7 @@ export default function Reports() {
       </div>
 
       {tab.key === 'personel' && <HeadcountReport companyId={companyId} />}
-      {tab.key === 'giris-cikis' && <TurnoverReport year={year} />}
+      {tab.key === 'giris-cikis' && <TurnoverReport year={year} companyId={companyId} />}
       {tab.key === 'izin' && <LeaveUsageReport year={year} companyId={companyId} />}
       {tab.key === 'bordro' && <PayrollCostReport year={year} />}
     </>
@@ -214,9 +214,9 @@ function HeadcountReport({ companyId }) {
 // Giriş-çıkış
 // ---------------------------------------------------------------------------
 
-function TurnoverReport({ year }) {
+function TurnoverReport({ year, companyId }) {
   const { exitCode } = useLookups();
-  const { data, loading, error, reload } = useApi(`/reports/turnover${qs({ year })}`);
+  const { data, loading, error, reload } = useApi(`/reports/turnover${qs({ year, company_id: companyId })}`);
   if (error && !data) return <ErrorState error={error} onRetry={reload} />;
   if (loading && !data) return <Loading />;
   if (!data) return null;
@@ -227,8 +227,7 @@ function TurnoverReport({ year }) {
     hires: m.hires,
     exits: m.exits,
   }));
-  const now = new Date();
-  const isFuture = (m) => data.year > now.getFullYear() || (data.year === now.getFullYear() && m > now.getMonth() + 1);
+  const isFuture = (m) => !!data.months[m - 1]?.future;
   const totalReasons = data.exit_reasons.reduce((s, r) => s + r.count, 0);
 
   return (
@@ -236,7 +235,7 @@ function TurnoverReport({ year }) {
       <div className="grid grid-4">
         <StatCard icon={LogIn} tone="green" label="İşe giriş" value={formatNumber(data.total_hires)} sub={`${data.year} yılı`} />
         <StatCard icon={LogOut} tone="red" label="Ayrılış" value={formatNumber(data.total_exits)} sub={`${data.year} yılı`} />
-        <StatCard icon={Users} label="Ortalama personel" value={formatNumber(data.average_headcount, 1)} sub="Ay sonu sayılarının ortalaması" />
+        <StatCard icon={Users} label="Ortalama personel" value={formatNumber(data.average_headcount, 1)} sub="Geçen ayların ay sonu ortalaması" />
         <StatCard icon={Percent} tone="amber" label="Personel devir oranı" value={formatPercent(data.turnover_rate)} sub="Ayrılış / ortalama personel" />
       </div>
 
