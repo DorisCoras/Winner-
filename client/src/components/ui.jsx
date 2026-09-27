@@ -209,9 +209,12 @@ export function Tabs({ tabs, active, onChange }) {
 
 export function Modal({ open, onClose, title, children, footer, size = '' }) {
   const ref = useRef(null);
+  // onClose ref'te tutulur: ebeveyn her render'da yeni fonksiyon verse de odak/scroll sıfırlanmaz.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => e.key === 'Escape' && onClose?.();
+    const onKey = (e) => e.key === 'Escape' && onCloseRef.current?.();
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -225,7 +228,7 @@ export function Modal({ open, onClose, title, children, footer, size = '' }) {
       document.body.style.overflow = prev;
       clearTimeout(t);
     };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}>

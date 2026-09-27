@@ -41,7 +41,7 @@ function buildGrid(data, today) {
     const d = i + 1;
     const date = `${year}-${pad(month)}-${pad(d)}`;
     const dow = new Date(Date.UTC(year, month - 1, d)).getUTCDay();
-    return { d, date, dow, weekend: dow === 0 || dow === 6, holiday: holidays.get(date) ?? null, today: date === today };
+    return { d, date, dow, weekend: dow === 0 || (dow === 6 && !data.saturday_workday), holiday: holidays.get(date) ?? null, today: date === today };
   });
 
   const people = new Map();

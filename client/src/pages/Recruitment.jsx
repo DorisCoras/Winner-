@@ -735,7 +735,12 @@ function CandidateFormModal({ candidate, defaultPostingId, jobs, onClose, onSave
   const save = (e) => {
     e?.preventDefault();
     return f.submit(async (v) => {
-      const body = { ...v, rating: v.rating || null, expected_salary: v.expected_salary === '' ? null : v.expected_salary };
+      // Boş sayısal alanlar gönderilmez: sunucu null/'' değerini 0'a çeviriyor, eksik alan ise null kaydediliyor.
+      const body = {
+        ...v,
+        rating: v.rating || undefined,
+        expected_salary: v.expected_salary === '' || v.expected_salary == null ? undefined : v.expected_salary,
+      };
       if (isEdit) await api.put(`/candidates/${candidate.id}`, body);
       else await api.post('/candidates', body);
       toast.success(isEdit ? 'Aday bilgileri güncellendi.' : 'Aday eklendi.');

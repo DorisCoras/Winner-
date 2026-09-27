@@ -59,7 +59,7 @@ export function canViewSensitive(user, employeeId) {
 // --- İzin ------------------------------------------------------------------------------
 
 export function holidayMap(db, from, to) {
-  const rows = db.prepare('SELECT date, name, half_day FROM holidays WHERE date BETWEEN ? AND ?').all(from, to);
+  const rows = db.prepare('SELECT date, name, half_day FROM holidays WHERE date BETWEEN ? AND ? ORDER BY date').all(from, to);
   return new Map(rows.map((r) => [r.date, r]));
 }
 

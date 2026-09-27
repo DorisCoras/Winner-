@@ -148,6 +148,16 @@ test('izin talebi → yönetici onayı akışı ve bakiye', async () => {
   assert.equal((await me(`/leaves/${created.data.id}/cancel`, { method: 'POST', body: {} })).status, 409);
 });
 
+test('kimse kendi izin talebini onaylayamaz (İK dahil)', async () => {
+  const hr = await login('ik@fimar.com.tr');
+  const types = (await hr('/leave-types')).data;
+  let start = addDays(today(), 90);
+  while (new Date(`${start}T00:00:00Z`).getUTCDay() !== 2) start = addDays(start, 1);
+  const own = await hr('/leaves', { method: 'POST', body: { leave_type_id: types.find((t) => t.code === 'mazeret').id, start_date: start, end_date: start } });
+  assert.equal(own.status, 201, JSON.stringify(own.data));
+  assert.equal((await hr(`/leaves/${own.data.id}/approve`, { method: 'POST', body: {} })).status, 403);
+});
+
 test('bordro dönemi oluşturma, satır düzenleme ve onay', async () => {
   const hr = await login('ik@fimar.com.tr');
   const companies = (await hr('/companies')).data;

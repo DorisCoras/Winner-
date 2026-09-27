@@ -272,8 +272,9 @@ export default function employeeRoutes(db) {
         db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
       }
       db.prepare(
-        "UPDATE leave_requests SET status = 'iptal', decision_note = 'İşten ayrılış nedeniyle iptal' WHERE employee_id = ? AND status = 'beklemede'",
-      ).run(id);
+        `UPDATE leave_requests SET status = 'iptal', decision_note = 'İşten ayrılış nedeniyle iptal', decided_by = ?, decided_at = ?
+         WHERE employee_id = ? AND status = 'beklemede'`,
+      ).run(req.user.id, new Date().toISOString(), id);
     });
     const openAssets = db
       .prepare('SELECT COUNT(*) AS n FROM asset_assignments WHERE employee_id = ? AND returned_at IS NULL')

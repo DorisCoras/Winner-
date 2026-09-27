@@ -10,6 +10,7 @@ import {
   computeLeaveDays,
   employeeLeaveBalance,
   holidayMap,
+  saturdayIsWorkday,
   subordinateIds,
   visibleEmployeeIds,
 } from '../services.js';
@@ -61,10 +62,14 @@ const holidaySchema = z.object({
   half_day: zBool,
 });
 
-/** Can `user` approve/reject requests of `employeeId`? İK her talebi; yönetici ekibinin taleplerini. */
+/**
+ * Can `user` approve/reject requests of `employeeId`? İK başkalarının tüm taleplerini, yönetici ekibinin
+ * taleplerini karara bağlar. Görevler ayrılığı gereği kimse kendi talebini onaylayamaz.
+ */
 function canDecide(db, user, employeeId) {
+  if (employeeId === user.employee_id) return false;
   if (isHR(user)) return true;
-  if (user.role !== 'yonetici' || employeeId === user.employee_id) return false;
+  if (user.role !== 'yonetici') return false;
   return subordinateIds(db, user.employee_id).includes(employeeId);
 }
 
@@ -347,7 +352,15 @@ export default function leaveRoutes(db) {
       : rows.map((row) =>
           ownScope.has(row.employee_id) ? row : { ...row, leave_type_name: 'İzinli', color: '#64748b' },
         );
-    res.json({ year, month, start, end, leaves, holidays: [...holidayMap(db, start, end).values()] });
+    res.json({
+      year,
+      month,
+      start,
+      end,
+      leaves,
+      holidays: [...holidayMap(db, start, end).values()],
+      saturday_workday: saturdayIsWorkday(db),
+    });
   });
 
   // --- Resmi tatiller ---

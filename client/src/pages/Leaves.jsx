@@ -107,12 +107,14 @@ function LeaveTable({ rows, showPerson, onDecide, onCancel, canCancel, empty, in
       key: 'employee_name',
       header: 'Personel',
       render: (r) => (
-        <PersonCell
-          name={r.employee_name}
-          sub={[r.position, r.company_name].filter(Boolean).join(' · ')}
-          to={`/personel/${r.employee_id}`}
-          size="sm"
-        />
+        <div style={{ maxWidth: 230 }} title={[r.position, r.department_name, r.company_name].filter(Boolean).join(' · ')}>
+          <PersonCell
+            name={r.employee_name}
+            sub={[r.position, r.company_name].filter(Boolean).join(' · ')}
+            to={`/personel/${r.employee_id}`}
+            size="sm"
+          />
+        </div>
       ),
     },
     { key: 'leave_type_name', header: 'İzin türü', render: (r) => <LeaveTypeCell row={r} /> },

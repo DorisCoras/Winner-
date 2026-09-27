@@ -356,7 +356,8 @@ function AssetFormModal({ asset, onClose, onSaved }) {
   const save = (e) => {
     e?.preventDefault();
     return f.submit(async (v) => {
-      const body = { ...v, value: v.value === '' ? null : v.value };
+      // Boş değer gönderilmez: sunucu null/'' değerini 0'a çeviriyor, eksik alan ise null kaydediliyor.
+      const body = { ...v, value: v.value === '' || v.value == null ? undefined : v.value };
       if (assigned) delete body.status;
       if (isEdit) await api.put(`/assets/${asset.id}`, body);
       else await api.post('/assets', body);
