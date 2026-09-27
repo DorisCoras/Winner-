@@ -1,18 +1,11 @@
-import { DatabaseSync } from 'node:sqlite';
-import { readFileSync, mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+// Platformdan bağımsız veritabanı yardımcıları. Node'da veritabanını database.js açar;
+// tarayıcı demo sürümü aynı yardımcıları SQLite (sql.js) üzerinde kullanır.
 
-const here = dirname(fileURLToPath(import.meta.url));
-
-export function openDatabase(path) {
-  if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
-  const db = new DatabaseSync(path);
+/** Şemayı uygular (CREATE ... IF NOT EXISTS) ve eksik sütunları tamamlar. */
+export function initSchema(db, schemaSql) {
   db.exec('PRAGMA foreign_keys = ON;');
-  if (path !== ':memory:') db.exec('PRAGMA journal_mode = WAL;');
-  db.exec(readFileSync(join(here, 'schema.sql'), 'utf8'));
+  db.exec(schemaSql);
   migrate(db);
-  return db;
 }
 
 /** Şema dosyasından sonra eklenen sütunları eski veritabanlarına uygular. */

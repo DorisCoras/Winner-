@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useApi } from '../api.js';
 import { formatDate, formatTenure, fullName, todayStr } from '../format.js';
-import { Alert, ErrorState, Loading } from '../components/ui.jsx';
+import { Alert, ErrorState, Loading, PrintButton } from '../components/ui.jsx';
 import './EmploymentCertificate.css';
 
 /** Çalışma belgesi (4857 sayılı İş Kanunu m.28) — yazdırılabilir sayfa. */
@@ -48,9 +48,7 @@ export default function EmploymentCertificate() {
           <ArrowLeft size={16} /> Personel kartına dön
         </Link>
         <span className="spacer" />
-        <button className="btn btn-primary" onClick={() => window.print()}>
-          <Printer size={16} /> Yazdır
-        </button>
+        <PrintButton />
       </div>
 
       {(!e.tc_kimlik || (left && !e.exit_date)) && (

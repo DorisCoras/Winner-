@@ -14,6 +14,15 @@ export class ApiError extends Error {
  * Hata durumunda ApiError fırlatır (message: sunucudan gelen Türkçe mesaj).
  */
 export async function api(path, { method = 'GET', body, signal } = {}) {
+  // Tarayıcı içi demo sürümü: istekler aynı sunucu koduna doğrudan iletilir.
+  const demo = globalThis.__FIMAR_DEMO__;
+  if (demo) {
+    if (signal?.aborted) throw new DOMException('İstek iptal edildi', 'AbortError');
+    const { status, data } = demo.request(path, { method, body });
+    if (status === 401 && !path.startsWith('/auth/')) window.dispatchEvent(new Event('auth:expired'));
+    if (status >= 400) throw new ApiError(status, data);
+    return data;
+  }
   let res;
   try {
     res = await fetch(`/api${path}`, {

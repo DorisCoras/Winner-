@@ -3,13 +3,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CalendarCheck, Calculator, ShieldCheck, Users } from 'lucide-react';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
-import { Alert, Field } from '../components/ui.jsx';
+import { Alert, Avatar, Field } from '../components/ui.jsx';
+import { isDemo } from '../demo/flag.js';
 
 const DEMO_ACCOUNTS = [
-  ['admin@fimar.com.tr', 'Sistem Yöneticisi'],
-  ['ik@fimar.com.tr', 'İK Uzmanı'],
-  ['yonetici@fimar.com.tr', 'Departman Yöneticisi'],
-  ['personel@fimar.com.tr', 'Personel'],
+  ['admin@fimar.com.tr', 'Sistem Yöneticisi', 'Kullanıcılar, ayarlar ve işlem geçmişi dahil tüm modüller'],
+  ['ik@fimar.com.tr', 'İK Uzmanı', 'Personel, izin, bordro, işe alım, zimmet ve raporlar'],
+  ['yonetici@fimar.com.tr', 'Departman Yöneticisi', 'Ekibini görür, izin onaylar, performans değerlendirir'],
+  ['personel@fimar.com.tr', 'Personel', 'Kendi izinleri, bordroları, zimmetleri ve profili'],
 ];
 
 export default function Login() {
@@ -36,6 +37,18 @@ export default function Login() {
     } catch (err) {
       setError(err.message);
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const loginAs = async (mail) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await login(mail, 'Demo1234');
+      navigate('/', { replace: true });
+    } catch (err) {
+      setError(err.message);
       setBusy(false);
     }
   };
@@ -74,62 +87,89 @@ export default function Login() {
       </section>
 
       <section className="login-form-wrap">
-        <form className="login-form" onSubmit={submit}>
-          <h1>Giriş yap</h1>
-          <p className="muted mt-1">Kurumsal e-posta adresiniz ve şifrenizle oturum açın.</p>
-          <div className="stack mt-2" style={{ gap: 14 }}>
-            {error && <Alert tone="error">{error}</Alert>}
-            <Field label="E-posta" htmlFor="email">
-              <input
-                id="email"
-                className="input"
-                type="email"
-                autoComplete="username"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ad.soyad@fimar.com.tr"
-                required
-                autoFocus
-              />
-            </Field>
-            <Field label="Şifre" htmlFor="password">
-              <input
-                id="password"
-                className="input"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </Field>
-            <button className="btn btn-primary" style={{ height: 40 }} disabled={busy}>
-              {busy ? 'Giriş yapılıyor…' : 'Giriş yap'}
-            </button>
-            <div className="small muted">Şifrenizi unuttuysanız İK birimi veya sistem yöneticisinden sıfırlama talep edin.</div>
-          </div>
-
-          {meta?.demo && (
-            <div className="demo-accounts">
-              <div className="strong" style={{ marginBottom: 4 }}>
-                Demo hesapları <span className="muted">(şifre: Demo1234)</span>
+        {isDemo() ? (
+          <div className="login-form">
+            <h1>FIMAR İK – Demo</h1>
+            <p className="muted mt-1">
+              Uygulamayı hangi rolle incelemek istediğinizi seçin. Bu demo tarayıcınızda çalışır; tüm kişi ve şirket verileri kurgusaldır.
+            </p>
+            {error && (
+              <div className="mt-2">
+                <Alert tone="error">{error}</Alert>
               </div>
-              {DEMO_ACCOUNTS.map(([mail, label]) => (
-                <button
-                  type="button"
-                  key={mail}
-                  onClick={() => {
-                    setEmail(mail);
-                    setPassword('Demo1234');
-                  }}
-                >
-                  <span>{mail}</span>
-                  <span className="muted">{label}</span>
+            )}
+            <div className="demo-roles">
+              {DEMO_ACCOUNTS.map(([mail, label, hint]) => (
+                <button type="button" key={mail} className="demo-role" onClick={() => loginAs(mail)} disabled={busy}>
+                  <Avatar name={label} />
+                  <span>
+                    <span className="role-title">{label}</span>
+                    <span className="muted small" style={{ display: 'block' }}>
+                      {hint}
+                    </span>
+                  </span>
                 </button>
               ))}
             </div>
-          )}
-        </form>
+          </div>
+        ) : (
+          <form className="login-form" onSubmit={submit}>
+            <h1>Giriş yap</h1>
+            <p className="muted mt-1">Kurumsal e-posta adresiniz ve şifrenizle oturum açın.</p>
+            <div className="stack mt-2" style={{ gap: 14 }}>
+              {error && <Alert tone="error">{error}</Alert>}
+              <Field label="E-posta" htmlFor="email">
+                <input
+                  id="email"
+                  className="input"
+                  type="email"
+                  autoComplete="username"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ad.soyad@fimar.com.tr"
+                  required
+                  autoFocus
+                />
+              </Field>
+              <Field label="Şifre" htmlFor="password">
+                <input
+                  id="password"
+                  className="input"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </Field>
+              <button className="btn btn-primary" style={{ height: 40 }} disabled={busy}>
+                {busy ? 'Giriş yapılıyor…' : 'Giriş yap'}
+              </button>
+              <div className="small muted">Şifrenizi unuttuysanız İK birimi veya sistem yöneticisinden sıfırlama talep edin.</div>
+            </div>
+
+            {meta?.demo && (
+              <div className="demo-accounts">
+                <div className="strong" style={{ marginBottom: 4 }}>
+                  Demo hesapları <span className="muted">(şifre: Demo1234)</span>
+                </div>
+                {DEMO_ACCOUNTS.map(([mail, label]) => (
+                  <button
+                    type="button"
+                    key={mail}
+                    onClick={() => {
+                      setEmail(mail);
+                      setPassword('Demo1234');
+                    }}
+                  >
+                    <span>{mail}</span>
+                    <span className="muted">{label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </form>
+        )}
       </section>
     </div>
   );

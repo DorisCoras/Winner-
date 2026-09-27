@@ -1,8 +1,8 @@
 import { createApp } from './app.js';
 import { bootstrap } from './bootstrap.js';
 import { loadConfig } from './config.js';
-import { openDatabase } from './db.js';
-import { seedDemo } from './seed.js';
+import { openDatabase } from './database.js';
+import { seedDemo } from './demo-data.js';
 
 const config = loadConfig();
 const db = openDatabase(config.dbPath);

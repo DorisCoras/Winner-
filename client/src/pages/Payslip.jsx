@@ -1,9 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useApi } from '../api.js';
 import { useAuth } from '../auth.jsx';
 import { formatDate, formatMoney, periodLabel, todayStr } from '../format.js';
-import { Alert, ErrorState, Loading } from '../components/ui.jsx';
+import { Alert, ErrorState, Loading, PrintButton } from '../components/ui.jsx';
 import './Payroll.css';
 
 /** rows: [{ label, value, info?, total?, negative? }] — iki sütunlu tutar tablosu. */
@@ -58,9 +58,7 @@ export default function Payslip() {
         <Link className="back-link" to={backTo} style={{ marginBottom: 0 }}>
           <ArrowLeft size={14} /> {backLabel}
         </Link>
-        <button className="btn btn-primary" onClick={() => window.print()}>
-          <Printer size={16} /> Yazdır
-        </button>
+        <PrintButton />
       </div>
       {isDraft && (
         <div className="no-print" style={{ maxWidth: 820, margin: '0 auto 14px' }}>

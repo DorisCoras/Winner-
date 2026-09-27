@@ -61,6 +61,13 @@ adaylar, zimmetler) yüklenir. Tüm hesapların şifresi **`Demo1234`**:
 
 > Demo verisindeki kişi, T.C. Kimlik No, IBAN ve "Örnek …" grup şirketleri tamamen kurgusaldır.
 
+### Tarayıcıda çalışan demo sürümü
+
+`npm run build:demo` komutu, sunucu kodunu SQLite'ın JavaScript sürümüyle (sql.js) birlikte tarayıcıda
+çalıştıran, tek dosyalık bir demo üretir: `client/dist-demo/fimar-ik-demo.html`. Sunucu kurmadan
+uygulamayı göstermek için kullanılır; giriş şifresiz rol seçimiyle yapılır, veriler kurgusaldır ve yalnızca
+açan kişinin tarayıcısında saklanır. Demo sürümünde yazdırma ve Excel'e aktarma kapalıdır.
+
 ## Canlı ortama alma
 
 ```bash

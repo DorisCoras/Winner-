@@ -1,35 +1,21 @@
-import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypto';
+import { hashPassword, randomBytes, randomToken, sha256Hex, verifyPassword } from './crypto.js';
 import { HttpError } from './http.js';
 
+export { hashPassword, verifyPassword };
+
 export const SESSION_COOKIE = 'fimar_ik_sid';
-const SCRYPT_KEYLEN = 64;
 
-export function hashPassword(password) {
-  const salt = randomBytes(16);
-  const hash = scryptSync(password, salt, SCRYPT_KEYLEN);
-  return `scrypt$${salt.toString('base64')}$${hash.toString('base64')}`;
-}
-
-export function verifyPassword(password, stored) {
-  const [scheme, saltB64, hashB64] = String(stored).split('$');
-  if (scheme !== 'scrypt' || !saltB64 || !hashB64) return false;
-  const expected = Buffer.from(hashB64, 'base64');
-  const actual = scryptSync(password, Buffer.from(saltB64, 'base64'), expected.length);
-  return timingSafeEqual(expected, actual);
-}
-
-const sha256 = (s) => createHash('sha256').update(s).digest('hex');
-export const hashToken = (token) => sha256(String(token ?? ''));
+export const hashToken = (token) => sha256Hex(String(token ?? ''));
 
 export function createSession(db, userId, days) {
-  const token = randomBytes(32).toString('base64url');
+  const token = randomToken(32);
   const expires = new Date(Date.now() + days * 86_400_000).toISOString();
-  db.prepare('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)').run(sha256(token), userId, expires);
+  db.prepare('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)').run(hashToken(token), userId, expires);
   return { token, expires };
 }
 
 export function destroySession(db, token) {
-  if (token) db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(sha256(token));
+  if (token) db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(hashToken(token));
 }
 
 export function parseCookies(header) {
@@ -75,7 +61,7 @@ export function sessionMiddleware(db) {
     const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
     req.sessionToken = token;
     if (token) {
-      const row = lookup.get(sha256(token), new Date().toISOString());
+      const row = lookup.get(hashToken(token), new Date().toISOString());
       if (row) {
         const user = loadUser(db, row.user_id);
         if (user?.active) req.user = user;

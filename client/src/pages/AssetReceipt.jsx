@@ -1,8 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useApi } from '../api.js';
 import { useAuth } from '../auth.jsx';
-import { ErrorState, Loading } from '../components/ui.jsx';
+import { ErrorState, Loading, PrintButton } from '../components/ui.jsx';
 import { formatDate, formatMoney } from '../format.js';
 import './AssetReceipt.css';
 
@@ -43,9 +43,7 @@ export default function AssetReceipt() {
         <ArrowLeft size={16} /> {back.label}
       </Link>
       {r && (
-        <button className="btn btn-primary" onClick={() => window.print()}>
-          <Printer size={16} /> Yazdır
-        </button>
+        <PrintButton />
       )}
     </div>
   );

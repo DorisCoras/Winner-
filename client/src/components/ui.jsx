@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, AlertTriangle, ArrowDown, ArrowLeft, ArrowUp, CheckCircle2, Info, Inbox, Search, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowDown, ArrowLeft, ArrowUp, CheckCircle2, Info, Inbox, Printer, Search, X } from 'lucide-react';
+import { isDemo } from '../demo/flag.js';
 import { avatarColor, initials } from '../format.js';
 
 // ---------------------------------------------------------------------------
@@ -281,6 +282,13 @@ export function FeedbackProvider({ children }) {
     setToasts((t) => [...t, { id, type, message }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), type === 'error' ? 6000 : 3500);
   }, []);
+  // Bileşen dışından gelen bilgi bildirimleri (ör. demo sürümünde kapalı özellikler)
+  useEffect(() => {
+    const onNotice = (e) => push('info', e.detail);
+    window.addEventListener('app:notice', onNotice);
+    return () => window.removeEventListener('app:notice', onNotice);
+  }, [push]);
+
   const toast = useMemo(
     () => ({
       success: (m) => push('success', m),
@@ -539,5 +547,15 @@ export function KeyValue({ items }) {
           </div>
         ))}
     </dl>
+  );
+}
+
+/** Yazdırılabilir sayfalardaki "Yazdır" düğmesi. Demo sürümünde (yazdırma kapalı) bilgi notu gösterir. */
+export function PrintButton() {
+  if (isDemo()) return <span className="muted small">Yazdırma, kurulu sürümde kullanılabilir.</span>;
+  return (
+    <button className="btn btn-primary" onClick={() => window.print()}>
+      <Printer size={16} /> Yazdır
+    </button>
   );
 }

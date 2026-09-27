@@ -87,7 +87,11 @@ function useTheme() {
       return '';
     }
   });
+  const changed = useRef(false);
   useEffect(() => {
+    // İlk açılışta tema seçilmemişse (sistem ayarı) mevcut data-theme değerine dokunulmaz.
+    if (!theme && !changed.current) return;
+    changed.current = true;
     if (theme) document.documentElement.setAttribute('data-theme', theme);
     else document.documentElement.removeAttribute('data-theme');
     try {

@@ -1,3 +1,5 @@
+import { isDemo, notify } from './demo/flag.js';
+
 // Excel (Türkçe) uyumlu CSV dışa aktarma: UTF-8 BOM + noktalı virgül ayırıcı.
 
 function cell(value) {
@@ -15,9 +17,13 @@ function cell(value) {
  * @param {object[]} rows
  */
 export function downloadCsv(filename, columns, rows) {
+  if (isDemo()) {
+    notify('Excel\'e aktarma demo sürümünde kapalıdır; kurulu sürümde dosya olarak indirilir.');
+    return;
+  }
   const lines = [columns.map((c) => cell(c.header)).join(';')];
   for (const row of rows) lines.push(columns.map((c) => cell(c.value(row))).join(';'));
-  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

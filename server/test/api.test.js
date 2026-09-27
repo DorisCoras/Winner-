@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 import { bootstrap } from '../src/bootstrap.js';
 import { loadConfig } from '../src/config.js';
-import { openDatabase } from '../src/db.js';
-import { seedDemo } from '../src/seed.js';
+import { openDatabase } from '../src/database.js';
+import { seedDemo } from '../src/demo-data.js';
 import { addDays, today } from '../src/lib/dates.js';
 
 let server;
